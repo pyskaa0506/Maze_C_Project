@@ -32,8 +32,8 @@ void print_compressed_data(uint8_t *compressed, int length) {
     printf("\n");
 }
 //function that writes compressed data to a file
-void write_compressed_data_to_file(uint8_t *compressed, int length, FILE *binaryFile) {
-    fwrite(compressed, sizeof(uint8_t), length, binaryFile);
+void write_compressed_data_to_file(uint8_t *compressed, int length, FILE *binary_file) {
+    fwrite(compressed, sizeof(uint8_t), length, binary_file);
 }
 
 //function that increases/decreases number in filenames like "1.bin"
@@ -73,24 +73,24 @@ char *chng_chnk_nbr(char operation, const char *act_file) {
     return new_filename;
 }
 
-void delete_files_in_directory(const char *directoryPath) {
+void delete_files_in_directory(const char *directory_path) {
     DIR *dir;
     struct dirent *entry;
 
-    dir = opendir(directoryPath);
+    dir = opendir(directory_path);
     if (dir == NULL) {
-        fprintf(stderr, "Error: opening directory failed %s\n", directoryPath);
+        fprintf(stderr, "Error: opening directory failed %s\n", directory_path);
         return;
     }
     while ((entry = readdir(dir)) != NULL) {
         if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
-            char filePath[1024];
-            snprintf(filePath, sizeof(filePath), "%s/%s", directoryPath, entry->d_name);
+            char file_path[1024];
+            snprintf(file_path, sizeof(file_path), "%s/%s", directory_path, entry->d_name);
 
-            if (remove(filePath) != 0) {
-                fprintf(stderr, "Error: deleting file failed: %s\n", filePath);
+            if (remove(file_path) != 0) {
+                fprintf(stderr, "Error: deleting file failed: %s\n", file_path);
             } else {
-                printf("Deleted file: %s\n", filePath);
+                printf("Deleted file: %s\n", file_path);
             }
         }
     }
