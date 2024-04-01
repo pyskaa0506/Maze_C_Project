@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     }
 
     // poprawnosc formatu labiryntu
-    if (is_valid_maze_format(input_filename)) {
+    if (is_valid_maze_format_v2(input_filename)) {
         printf("The maze format is valid.\n");
     } else {
         printf("The maze format is invalid.\n");
