@@ -20,12 +20,31 @@ int main(int argc, char *argv[]) {
         printf("Input file does not exist.\n");
     }
 
+    // sprawdzenie, czy plik jest binarny czy tekstowy
+    if (is_binary_file(input_filename)) {
+        printf("File is binary.\n");
+        if (is_valid_binary_maze_format(input_filename)) {
+            printf("Binary maze format is valid.\n");
+        } else {
+            printf("Binary maze format is invalid.\n");
+        }
+    } else {
+        printf("File is text.\n");
+        if (is_valid_maze_format_v2(input_filename)) {
+            printf("The maze format is valid.\n");
+        } else {
+            printf("The maze format is invalid.\n");
+        }
+    }
+
+
+/*
     // poprawnosc formatu labiryntu
     if (is_valid_maze_format_v2(input_filename)) {
         printf("The maze format is valid.\n");
     } else {
         printf("The maze format is invalid.\n");
-    }
+    }*/
 
     // zwolnienie pamiêci zaalokowanej na nazwy plików
     //free(input_filename);
