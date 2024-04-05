@@ -44,8 +44,8 @@ void process_input(int argc, char *argv[], char **input_filename, char **output_
         exit(2); // blad 2. Brak mozliwosci wczytania pliku
     }
 
-    if(is_binary_file(*input_filename)){
-        if(!is_valid_binary_maze_format(*input_filename)){
+    if(is_binary_file_v2(*input_filename)){
+        if(!is_valid_binary_maze_format_v2(*input_filename)){
             fprintf(stderr, "Error. Invalid maze format - %s\n", *input_filename);
             exit(5); // blad 5. Nieprawidlowy format labiryntu
         }
@@ -62,18 +62,6 @@ void process_input(int argc, char *argv[], char **input_filename, char **output_
             exit(5); // blad 5. Nieprawidlowy format labiryntu
         }
     }
-
-/*
-    if (!is_valid_input_file(*input_filename)) {
-        fprintf(stderr, "Error. Invalid input file format - %s\n", *input_filename);
-        exit(4); // blad 4. Nieprawidlowy format pliku
-    }
-
-    if (!is_valid_maze_format_v2(*input_filename)) {
-        fprintf(stderr, "Error. Invalid maze format - %s\n", *input_filename);
-        exit(5); // blad 5. Nieprawidlowy format labiryntu
-    }
-*/
 }
 
 // czy plik istnieje w systemie
@@ -85,7 +73,6 @@ bool file_exists(const char *filename){
     }
     return false;
 }
-
 
 // PLIK TEKSTOWY
 
@@ -178,73 +165,62 @@ bool is_valid_maze_format_v2(const char *filename){
 // PLIK BINARNY 
 
 // funkcja do sprawdzenia czy plik jest binarny 
-
-bool is_binary_file(const char *filename){
-    FILE *file = fopen(filename, "rb");
-    if (file == NULL)
-    {
-        fprintf(stderr, "Error opening file: %s\n", filename);
-        return false;
-    }
-
-    bool is_binary = false;
-    int ch;
-    while ((ch =fgetc(file))!= EOF){
-        if(ch < 0x20 && ch != '\n' && ch != '\r'&& ch != '\t'){
-            /*
-            ch < 0x20 = 32 = spacja
-            ch != '\n' = nowa linija = znak koca liniji
-            ch != '\r' = znak nie jest "powrotem karetki" = znak nowej liniji
-            ch != '\t' = tabulacja
-            */
-           is_binary = true;
-           break;
-        }
-    }
-
-    fclose(file);
-    return is_binary;
-}
-
-#define CHUNK_SIZE 10000
-
-// funkcja do sprawdzenia poprawnoœci formatu labiryntu dla pliku binarnego 
-bool is_valid_binary_maze_format(const char *filename){
-    FILE *file = fopen(filename, "rb");
-    if (!file){
+bool is_binary_file_v2(const char *filename){
+    FILE *file = fopen(filename, "rb"); // Otwieramy plik w trybie binarnym tylko do odczytu
+    if (!file) {
         fprintf(stderr, "Error. Unable to open file - %s\n", filename);
         return false;
     }
 
-    int num_p = 0, num_k = 0;
-    char chunk[CHUNK_SIZE];
-    size_t bytes_read;
+    bool binary = false;
+    int ch;
+    while ((ch = fgetc(file)) != EOF) { 
+        if (ch < 0x07 || ch > 0x7E) { 
+            binary = true;
+            break;
+        }
+    }
 
-    //fread odczytuje dane z pliku 'file' i zapisuje je do bufora 'chunk'
-    while ((bytes_read = fread(chunk, sizeof(char), CHUNK_SIZE, file)>0)){
-        for (size_t i = 0; i < bytes_read; i++){
-            char current = chunk[i];
-            if(current == 'P')
-            {
-                num_p++;
-            }
-            else if (current == 'K')
-            {
-                num_k++;
-            }
-            else if (current != ' ' && current != 'X'){
-                fprintf(stderr, "Error. Invalid character in maze.\n");
+    fclose(file);
+    return binary;
+}
+
+// funkcja do sprawdzenia poprawnosci formatu labiryntu dla pliku binarnego 
+bool is_valid_binary_maze_format_v2(const char *filename){
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        fprintf(stderr, "Error. Unable to open file - %s\n", filename);
+        return false;
+    }
+
+    char line[MAX_LINE_LENGTH];
+    size_t expected_line_length = 0;
+    size_t line_num = 0;
+
+    while(fread(line, 1, MAX_LINE_LENGTH, file) > 0){ 
+        line_num++;
+
+        // sprawdzenie d?ugosci linii
+        size_t line_length = strlen(line);
+        if (line_length > MAX_LINE_LENGTH) {
+            fprintf(stderr, "Error. Line too long in maze file (line %zu).\n", line_num);
+            fclose(file);
+            return false;
+        }
+    
+        // pierwsza linia = ustalenie oczekiwanej dlugosci
+        if (line_num == 1) {
+            expected_line_length = line_length;
+        } else {
+            if (line_length != expected_line_length) {
+                fprintf(stderr, "Error. Inconsistent line length in maze file.\n");
                 fclose(file);
                 return false;
             }
         }
     }
+
     fclose(file);
 
-    if(num_p != 1 || num_k != 1)
-    {
-        fprintf(stderr,"Error. Incorrect number of entrances or exits in maze file.\n");
-        return false;
-    }
     return true;
 }

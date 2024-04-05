@@ -11,12 +11,11 @@ bool file_exists(const char *filename);
 
 bool is_valid_input_file(const char *filename);
 
-//bool is_valid_maze_format(const char *filename); 
-
 bool is_valid_maze_format_v2(const char *filename);
 
-bool is_binary_file(const char *filename);
+bool is_binary_file_v2
+(const char *filename);
 
-bool is_valid_binary_maze_format(const char *filename);
+bool is_valid_binary_maze_format_v2(const char *filename);
 
 #endif
