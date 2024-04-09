@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include "file_loading.h"
 #include "chunks_handling.h"
+#include "path_finding.h"
 
 int main(int argc, char *argv[]) {
-    // deklaracja zmiennych na nazwy plikÃ³w
+    // deklaracja zmiennych na nazwy plików
     char *input_filename = NULL;
     char *output_filename = NULL;
 
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // zwolnienie pamiÃªci zaalokowanej na nazwy plikÃ³w
+    // zwolnienie pami?ci zaalokowanej na nazwy plików
     //free(input_filename);
     free(output_filename);
     
@@ -67,6 +68,16 @@ int main(int argc, char *argv[]) {
             printf("\n");
         }
     }
+
+    /*
+    PathInfo path_info = find_path(input_filename, col, row);
+    printf("Found path: %s\n", path_info.path);
+
+    save_path_to_file(path_info.path);
+    printf("Path saved to temp_path.txt\n");
+
+    free(path_info.path);
+    */
 
     return EXIT_SUCCESS;
 }

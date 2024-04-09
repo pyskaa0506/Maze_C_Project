@@ -73,7 +73,7 @@ char **read_txt_chunk(char *filepath, int16_t col, int16_t row, int16_t chunk_ro
 //    return chunkCount - 1;
 //}
 
-int txt_file_to_txt_chunks(char *filepath, int16_t col, int16_t row, int16_t chunk_rows_counter) {
+int txt_file_to_txt_chunks(const char *filepath, int16_t col, int16_t row, int16_t chunk_rows_counter) {
     int cols_in_file = col * 2 + 3;
     delete_files_in_directory("../chunks");
     FILE *file = fopen(filepath, "r");
@@ -90,7 +90,7 @@ int txt_file_to_txt_chunks(char *filepath, int16_t col, int16_t row, int16_t chu
 
     int chunkCount = 1;
     while (!feof(file)) {
-        char filename[10];
+        char filename[20];
         sprintf(filename, "../chunks/%d.txt", chunkCount);
 
         FILE *new_file = fopen(filename, "w");

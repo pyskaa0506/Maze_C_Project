@@ -224,3 +224,35 @@ bool is_valid_binary_maze_format_v2(const char *filename){
 
     return true;
 }
+
+bool get_maze_dimensions(const char *filename, int16_t *col, int16_t *row) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        fprintf(stderr, "Error: Unable to open file - %s\n", filename);
+        return false;
+    }
+
+    int16_t max_col = 0;
+    int16_t current_row = 0;
+
+    char line[MAX_LINE_LENGTH];
+    while (fgets(line, sizeof(line), file)) {
+        current_row++;
+
+        // Usuni?cie bia?ych znaków z ko?ca linii
+        int16_t line_length = strlen(line);
+        while (line_length > 0 && (line[line_length - 1] == '\n' || line[line_length - 1] == '\r' || line[line_length - 1] == ' ')) {
+            line_length--;
+        }
+
+        if (line_length > max_col) {
+            max_col = line_length;
+        }
+    }
+
+    *col = max_col;
+    *row = current_row;
+
+    fclose(file);
+    return true;
+}
