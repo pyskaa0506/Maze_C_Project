@@ -10,4 +10,6 @@ add_executable(Maze_C_Project
         file_loading.h
         chunks_handling.h
         main.c
-        chunks_handling.c)
+        chunks_handling.c
+        bin_chunks_handling.h
+        bin_chunks_handling.c)
