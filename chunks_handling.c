@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 
 char **read_txt_chunk(char *filepath, int16_t col, int16_t row, int16_t chunk_row_size) {
@@ -30,48 +29,6 @@ char **read_txt_chunk(char *filepath, int16_t col, int16_t row, int16_t chunk_ro
     fclose(file);
     return buffer;
 }
-
-//int txt_file_to_bin_chunks(char *filepath, int16_t col, int16_t row, int16_t chunk_row_size) {
-//    delete_files_in_directory("../chunks");
-//    FILE *file = fopen(filepath, "r");
-//    if (!file) {
-//        fprintf(stderr, "Error: Couldn't open the file\n");
-//        return -1;
-//    }
-//
-//    unsigned int *buffer = (unsigned int *)malloc(sizeof(unsigned int) * chunk_row_size * (col * 2 + 1));
-//    if (buffer == NULL){
-//        fprintf(stderr,"Error: Couldn't allocate memory\n");
-//        exit(1);
-//    }
-//
-//    int chunkCount = 1;
-//    while (!feof(file)) {
-//        char filename[12]; // Increase filename buffer size to accommodate the extension
-//        sprintf(filename, "../chunks/%d.bin", chunkCount); // Change the extension to .bin
-//
-//        FILE *new_file = fopen(filename, "wb"); // Open in binary mode
-//        if (!new_file) {
-//            fprintf(stderr, "Error: Couldn't open the file\n");
-//            fclose(file);
-//            free(buffer);
-//            return -1;
-//        }
-//
-//        // Read chunk_row_size lines from the file
-//        int linesRead = 0;
-//        while (linesRead < chunk_row_size && fgets((char *)(buffer + linesRead * (col * 2 + 1)), col * 2 + 1, file)) {
-//            fwrite(buffer + linesRead * (col * 2 + 1), sizeof(unsigned int), col * 2 + 1, new_file); // Write binary data
-//            linesRead++;
-//        }
-//        fclose(new_file);
-//
-//        chunkCount++;
-//    }
-//    free(buffer);
-//    fclose(file);
-//    return chunkCount - 1;
-//}
 
 int txt_file_to_txt_chunks(const char *filepath, int16_t col, int16_t row, int16_t chunk_rows_counter) {
     int cols_in_file = col * 2 + 3;

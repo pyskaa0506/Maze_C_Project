@@ -1,83 +1,207 @@
-
 #include <stdio.h>
 #include <stdlib.h>
-#include "file_loading.h"
-#include "chunks_handling.h"
-#include "path_finding.h"
 
-int main(int argc, char *argv[]) {
-    // deklaracja zmiennych na nazwy plików
-    char *input_filename = NULL;
-    char *output_filename = NULL;
+#define WALL '#'
+#define FREE_SPACE ' '
+#define UP 'A'
+#define DOWN 'B'
+#define LEFT 'C'
+#define RIGHT 'D'
+#define START 'P'  // Starting point
+#define TARGET 'K'  // Target point
+#define PATH '#' // Path
 
-    // getopt()
-    process_input(argc, argv, &input_filename, &output_filename);
+// Function to add a node and its distance to the unvisited list
+int* add_node_and_distance(int* list, int* size, int node_index, int distance) {
+    int* temp = realloc(list, (*size + 2) * sizeof(int));
+    if (temp == NULL) {
+        printf("Error reallocating memory.\n");
+        return NULL;
+    }
+    list = temp;
+    list[*size] = node_index;
+    list[*size + 1] = distance;
+    (*size) += 2;
+    return list;
+}
 
-    printf("Input filename: %s\n", input_filename);
-    printf("Output filename: %s\n", output_filename);
-
-    // sprawdzenie czy plik istnieje
-    if (file_exists(input_filename)) {
-        printf("Input file exists.\n");
-    } else {
-        printf("Input file does not exist.\n");
+// Read the maze from a file
+char** read_maze(const char* filepath, int rows, int cols) {
+    FILE* file = fopen(filepath, "r");
+    if (!file) {
+        printf("Error opening file.\n");
+        return NULL;
     }
 
-    // sprawdzenie, czy plik jest binarny czy tekstowy
-    if (is_binary_file_v2
-(input_filename)) {
-        printf("File is binary.\n");
-        if (is_valid_binary_maze_format_v2(input_filename)) {
-            printf("Binary maze format is valid.\n");
-        } else {
-            printf("Binary maze format is invalid.\n");
-        }
-    } else {
-        printf("File is text.\n");
-        if (is_valid_maze_format_v2(input_filename)) {
-            printf("The maze format is valid.\n");
-        } else {
-            printf("The maze format is invalid.\n");
-        }
+    char** maze = malloc(rows * sizeof(char*));
+    for (int i = 0; i < rows; i++) {
+        maze[i] = malloc((cols + 1) * sizeof(char));
+        fgets(maze[i], cols + 2, file);
     }
 
-    // zwolnienie pami?ci zaalokowanej na nazwy plików
-    //free(input_filename);
-    free(output_filename);
-    
-        char *filepath = "../default_maps/25x50_20.txt";
-    int16_t col = 25;
-    int16_t row = 50; //remember it is 2 * row + 1 in file
-    int16_t chunk_rows_counter = 50; // How many rows should be packed into a chunk (file)
-    int chunk_counter = txt_file_to_txt_chunks(filepath, col, row, chunk_rows_counter); //this separates the file into chunks and returns the number of chunks created
+    fclose(file);
+    return maze;
+}
+
+// Save the maze to a file
+void save_maze(const char* filepath, char** maze, int rows, int cols) {
+    FILE* file = fopen(filepath, "w");
+    if (!file) {
+        printf("Error opening file for writing.\n");
+        return;
+    }
+
+    for (int i = 0; i < rows; i++) {
+        fputs(maze[i], file);
+        fputc('\n', file);  // Add a newline after each row
+    }
+
+    fclose(file);
+}
+
+void backtrack_path(char** maze, int rows, int cols, int target_row, int target_col) {
+    int current_row = target_row;
+    int current_col = target_col;
+
+    // WARNING !!!
+    // a really dumb way to get the original maze
+    // it would be better to save copy of each labirynt path, load and save it there
+    // either way it's going to be needed to save the path into chunks so...
+    char** maze_original = read_maze("../default_maps/25x50_20.txt", rows, cols);
+
+    while (maze[current_row][current_col] != START) {
+        char step = maze[current_row][current_col];
+        maze[current_row][current_col] = PATH;
+        maze_original[current_row][current_col] = PATH;
+
+        if (step == LEFT)
+        {
+            current_col -= 1;
+        }
+        else if (step == RIGHT)
+        {
+            current_col += 1;
+        }
+        else if (step == UP)
+        {
+            current_row -= 1;
+        }
+        else if (step == DOWN)
+        {
+            current_row += 1;
+        }
+        if (current_row < 0 || current_row >= rows || current_col < 0 || current_col >= cols) {
+            printf("Error: Path goes out of bounds.\n");
+            break;
+        }
+        else if (maze[current_row][current_col] == WALL) {
+            printf("Error: Path goes through a wall.\n");
+            break;
+        }
+        else if (maze[current_row][current_col] == PATH) {
+            printf("Error: Path goes through itself.\n");
+            break;
+        }
+        else if (maze[current_row][current_col] == START) {
+            printf("(%d, %d)\n", current_row, current_col);
+            break;
+        }
+    }
+    maze[target_row][target_col] = PATH; // Ensure target remains marked
+    maze_original[target_row][target_col] = PATH;
 
 
-    //tutorial
-    char *filepath_chunk = "../chunks/3.txt";
-    char **chunk = read_txt_chunk(filepath_chunk, col, row, chunk_rows_counter); //this reads the first chunk and returns it as a 2D array that you can work on
+    // print labirynt, it's not nor being saves yet !
+    for (int i = 0; i < rows; i++) {
+        printf("%s", maze_original[i]);
+    }
 
-    // and if you want to print every chunk char by char
-    for (int i = 1; i <= chunk_counter; i++) {
-        char filename[10];
-        sprintf(filename, "../chunks/%d.txt", i);
-        char **chunk = read_txt_chunk(filename, col, row, chunk_rows_counter);
-        for (int j = 0; j < chunk_rows_counter; j++) {
-            for (int k = 0; k < col * 2 + 1; k++) {
-                printf("%c", chunk[j][k]);
+    // Free the memory allocated for maze_original
+    for (int i = 0; i < rows; i++) {
+        free(maze_original[i]);
+    }
+    free(maze_original);
+}
+
+
+// Implementation of Dijkstra's Algorithm
+void dijkstra(char** maze, int rows, int cols, int start_row, int start_col) {
+
+    // Debugging variables
+    int debug_most_unvisited_nodes = 0;
+    /////////////
+
+
+    char found = 0;
+    int* unvisited = NULL;
+    int unvisited_size = 0;
+    unvisited = add_node_and_distance(unvisited, &unvisited_size, start_row * cols + start_col, 0);
+
+    while (unvisited_size > 0 && found == 0) {
+        // Find the node with the minimum distance
+        int min_index = 1;
+        for (int i = 3; i < unvisited_size; i += 2) {
+            if (unvisited[i] < unvisited[min_index]) {
+                min_index = i;
             }
-            printf("\n");
+        }
+
+        // Debugging, to be removed
+        if (unvisited_size > debug_most_unvisited_nodes) {
+            debug_most_unvisited_nodes = unvisited_size;
+        }
+        ////////////////////
+
+        int current = unvisited[min_index - 1];
+        int current_distance = unvisited[min_index];
+        // Remove the current node from the unvisited list
+        unvisited[min_index - 1] = unvisited[unvisited_size - 2];
+        unvisited[min_index] = unvisited[unvisited_size - 1];
+        unvisited_size -= 2;
+
+        int current_row = current / cols;
+        int current_col = current % cols;
+
+        if (maze[current_row][current_col] == TARGET) {
+            break;  // Stop the algorithm if the target is reached
+        }
+
+        // Check and update four possible directions
+        int direction_offsets[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        char direction_marks[4] = {DOWN, UP, RIGHT, LEFT};
+
+        for (int i = 0; i < 4; i++) {
+            int neighbor_row = current_row + direction_offsets[i][0];
+            int neighbor_col = current_col + direction_offsets[i][1];
+            if (neighbor_row >= 0 && neighbor_row < rows && neighbor_col >= 0 && neighbor_col < cols && (maze[neighbor_row][neighbor_col] == FREE_SPACE || maze[neighbor_row][neighbor_col] == TARGET))
+            {
+                if (maze[neighbor_row][neighbor_col] == TARGET) {
+                    found = 1;
+                    backtrack_path(maze, rows, cols, current_row, current_col);
+                    break;
+                } else if (maze[neighbor_row][neighbor_col] == FREE_SPACE)
+                maze[neighbor_row][neighbor_col] = direction_marks[i];
+                unvisited = add_node_and_distance(unvisited, &unvisited_size, neighbor_row * cols + neighbor_col, current_distance + 1);
+            }
         }
     }
 
-    /*
-    PathInfo path_info = find_path(input_filename, col, row);
-    printf("Found path: %s\n", path_info.path);
+    printf("Most unvisited nodes: %d\n", debug_most_unvisited_nodes);
 
-    save_path_to_file(path_info.path);
-    printf("Path saved to temp_path.txt\n");
+    free(unvisited);
+}
 
-    free(path_info.path);
-    */
 
-    return EXIT_SUCCESS;
+int main() {
+    const char* filepath = "../default_maps/25x50_20.txt";
+    int rows = 101, cols = 51;
+    char** maze = read_maze(filepath, rows, cols);
+    dijkstra(maze, rows, cols, 1, 0);  // Assuming starting point at (1,0) !!!
+
+    for (int i = 0; i < rows; i++) {
+        free(maze[i]);
+    }
+    free(maze);
+
+    return 0;
 }
