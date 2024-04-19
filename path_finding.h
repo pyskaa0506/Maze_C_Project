@@ -4,15 +4,28 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef struct {
-    char *path;
-    char direction; // kierunki oznaczylam - U (up), D (down), L (left), R (right)
-} PathInfo;
+#define WALL '#'
+#define FREE_SPACE ' '
+#define UP 'A'
+#define DOWN 'B'
+#define LEFT 'C'
+#define RIGHT 'D'
+#define START 'P'  // Starting point
+#define TARGET 'K'  // Target point
+#define PATH '#' // Path
 
-char determine_next_direction(const char *path);
+// Function to add a node and its distance to the unvisited list
+int* add_node_and_distance(int* list, int* size, int node_index, int distance);
 
-PathInfo find_path(const char *input_filename, int16_t col, int16_t row);
+// Read the maze from a file
+char** read_maze(const char* filepath, int rows, int cols);
 
-bool is_valid_cell(const char *input_filename, int x, int y) ;
+// Save the maze to a file
+void save_maze(const char* filepath, char** maze, int rows, int cols);
+
+void backtrack_path(char** maze, int rows, int cols, int target_row, int target_col);
+
+// Implementation of Dijkstra's Algorithm
+void dijkstra(char** maze, int rows, int cols, int start_row, int start_col);
 
 #endif /* PATH_FINDING_H */
