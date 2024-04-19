@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "file_loading.h"
@@ -40,14 +39,45 @@ int main(int argc, char *argv[]) {
             printf("The maze format is invalid.\n");
         }
     }
+    
+    const char* filepath = "../default_maps/25x50_20.txt";
+    int16_t rows, cols; // Zmiana na int16_t
+    get_maze_dimensions(filepath, &cols, &rows); // Przekazanie wskaŸników na int16_t
+
+   if (!get_maze_dimensions(input_filename, &cols, &rows)) {
+        fprintf(stderr, "Failed to get maze dimensions from file '%s'.\n", input_filename);
+        return EXIT_FAILURE;
+    }
+    printf("Maze dimensions: %dx%d\n", cols, rows);
+
+    char** maze = read_maze(filepath, rows, cols);
+    dijkstra(maze, rows, cols, 1, 0);  // Assuming starting point at (1,0) !!!
+
+    for (int i = 0; i < rows; i++) {
+        free(maze[i]);
+    }
+    free(maze);
 
     // zwolnienie pami?ci zaalokowanej na nazwy plików
     //free(input_filename);
     free(output_filename);
-    
-        char *filepath = "../default_maps/25x50_20.txt";
-    int16_t col = 25;
-    int16_t row = 50; //remember it is 2 * row + 1 in file
+
+    /*
+    Tutorial do move_chuck
+    char initial_chunk_path[20] = "chunk1.txt";
+
+    int16_t chunk_row_size = 10;
+    int16_t chunk_col_size = 10;
+
+    int16_t total_chunks = 10;
+
+    find_exit(initial_chunk_path, chunk_row_size, chunk_col_size, total_chunks);
+
+    */
+
+
+
+    /*
     int16_t chunk_rows_counter = 50; // How many rows should be packed into a chunk (file)
     int chunk_counter = txt_file_to_txt_chunks(filepath, col, row, chunk_rows_counter); //this separates the file into chunks and returns the number of chunks created
 
@@ -68,15 +98,6 @@ int main(int argc, char *argv[]) {
             printf("\n");
         }
     }
-
-    /*
-    PathInfo path_info = find_path(input_filename, col, row);
-    printf("Found path: %s\n", path_info.path);
-
-    save_path_to_file(path_info.path);
-    printf("Path saved to temp_path.txt\n");
-
-    free(path_info.path);
     */
 
     return EXIT_SUCCESS;
