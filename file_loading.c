@@ -43,13 +43,12 @@ void process_input(int argc, char *argv[], char **input_filename, char **output_
         fprintf(stderr, "Error. Unable to open input file - %s\n", *input_filename);
         exit(2); // blad 2. Brak mozliwosci wczytania pliku
     }
-    /*
     if(is_binary_file_v2(*input_filename)){
         if(!is_valid_binary_maze_format_v2(*input_filename)){
             fprintf(stderr, "Error. Invalid maze format - %s\n", *input_filename);
             exit(5); // blad 5. Nieprawidlowy format labiryntu
         }
-    }*/
+    }
     else
     {
         if(!is_valid_input_file(*input_filename)){
@@ -186,7 +185,6 @@ bool is_binary_file_v2(const char *filename){
 }
 
 // funkcja do sprawdzenia poprawnosci formatu labiryntu dla pliku binarnego
-/* 
 bool is_valid_binary_maze_format_v2(const char *filename){
     FILE *file = fopen(filename, "rb");
     if (!file) {
@@ -196,9 +194,9 @@ bool is_valid_binary_maze_format_v2(const char *filename){
 
     char line[MAX_LINE_LENGTH];
     size_t expected_line_length = 0;
-    size_t line_num = 0;
+    size_t line_num = 1;
 
-    while(fread(line, 1, MAX_LINE_LENGTH, file) > 0){ 
+    while(fread(line, 2, MAX_LINE_LENGTH, file) > 0){ 
         line_num++;
 
         // sprawdzenie d?ugosci linii
@@ -210,7 +208,7 @@ bool is_valid_binary_maze_format_v2(const char *filename){
         }
     
         // pierwsza linia = ustalenie oczekiwanej dlugosci
-        if (line_num == 1) {
+        if (line_num == 2) {
             expected_line_length = line_length;
         } else {
             if (line_length != expected_line_length) {
@@ -225,7 +223,7 @@ bool is_valid_binary_maze_format_v2(const char *filename){
 
     return true;
 }
-*/
+
 bool get_maze_dimensions(const char *filename, int16_t *col, int16_t *row) {
     FILE *file = fopen(filename, "r");
     if (!file) {
