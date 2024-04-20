@@ -12,4 +12,6 @@ add_executable(Maze_C_Project
         main.c
         chunks_handling.c
         bin_chunks_handling.h
-        bin_chunks_handling.c)
+        bin_chunks_handling.c
+        path_finding.c
+        move_chunck.c)

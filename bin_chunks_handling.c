@@ -1,14 +1,32 @@
-//
-// Created by pyska on 11.04.2024.
-//
-
 #include "bin_chunks_handling.h"
-void read_bin_file(char *filepath, int chunk_row_counter) {
+#include "chunks_handling.h"
+
+void write_code_world_to_file(FILE *file, unsigned char wall_or_path, unsigned char how_many, int col, unsigned int *how_many_already_written, int P_X, int P_Y, int K_X, int K_Y, unsigned int *how_many_rows_written) {
+    for (int i = 0; i < how_many + 1; i++) {
+        if ((*how_many_rows_written == P_Y) && (*how_many_already_written == P_X-1)) {
+            fwrite("P", sizeof(char), 1, file);
+            (*how_many_already_written)++;
+        } else if ((*how_many_rows_written == K_Y) && (*how_many_already_written == K_X-1)){
+            fwrite("K", sizeof(char), 1, file);
+            (*how_many_already_written)++;
+        }
+        else {
+            fwrite(&wall_or_path, sizeof(char), 1, file);
+            (*how_many_already_written)++;
+        }
+        if (*how_many_already_written == col) {
+            fwrite("\n", sizeof(char), 1, file);
+            *how_many_already_written = 0;
+            (*how_many_rows_written)++;
+        }
+    }
+}
+int read_bin_file(char *filepath, int chunk_row_counter) {
 
     FILE *file = fopen(filepath, "rb");
     if (file == NULL) {
         printf("Error: File not found.\n");
-        return;
+        exit(EXIT_FAILURE);
     }
 
     int32_t fileID;
@@ -55,17 +73,21 @@ void read_bin_file(char *filepath, int chunk_row_counter) {
     printf("Wall: %d\n", wall);
     printf("Path: %d\n", path);
 
-    unsigned int wall_and_path_counter = 0;
+    FILE *file_output = fopen("../default_maps/bin_output.txt", "w");
+    unsigned int how_many_already_written = 0;
+    unsigned int how_many_rows_written = 1;
 
     for (int i = 0; i < counter; i++) {
         unsigned char *buffer = (char *) malloc(sizeof(char) * 3);
         fread(buffer, sizeof(char), 3, file);
         if (buffer[0] == separator && (buffer[1] == wall || buffer[1] == path)) {
-            printf("Correct format.\n");
+            write_code_world_to_file(file_output, buffer[1], buffer[2], col, &how_many_already_written, P_X, P_Y, K_X, K_Y, &how_many_rows_written);
         } else {
             printf("Incorrect format.\n");
+            exit(1);
         }
-        printf("Buffer  %d: %d %d %d\n", i , buffer[0], buffer[1], buffer[2]);
     }
     fclose(file);
+    fclose(file_output);
+    return txt_file_to_txt_chunks("../default_maps/bin_output.txt", (int16_t)((col - 1) / 2), (int16_t)((row - 1) / 2), chunk_row_counter);
 }
