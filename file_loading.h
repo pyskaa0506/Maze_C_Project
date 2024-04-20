@@ -16,7 +16,7 @@ bool is_valid_maze_format_v2(const char *filename);
 
 bool is_binary_file_v2(const char *filename);
 
-bool is_valid_binary_maze_format_v2(const char *filename);
+//bool is_valid_binary_maze_format_v2(const char *filename);
 
 bool get_maze_dimensions(const char *filename, int16_t *col, int16_t *row);
 

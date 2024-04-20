@@ -26,11 +26,11 @@ int main(int argc, char *argv[]) {
     if (is_binary_file_v2
 (input_filename)) {
         printf("File is binary.\n");
-        if (is_valid_binary_maze_format_v2(input_filename)) {
+        /*if (is_valid_binary_maze_format_v2(input_filename)) {
             printf("Binary maze format is valid.\n");
         } else {
             printf("Binary maze format is invalid.\n");
-        }
+        }*/
     } else {
         printf("File is text.\n");
         if (is_valid_maze_format_v2(input_filename)) {
