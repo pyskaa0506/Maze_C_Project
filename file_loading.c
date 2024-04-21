@@ -87,8 +87,6 @@ bool is_valid_input_file( const char *filename){
 }
 
 //funkcja do testowania poprawnosci formatu labiryntu
-#define MAX_LINE_LENGTH 10000
-
 bool is_valid_maze_format_v2(const char *filename){
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -132,7 +130,7 @@ bool is_valid_maze_format_v2(const char *filename){
     
         // czy linija zawiera prawidlowe znaki
         for (size_t i = 0; i < line_length; i++) {
-            if ((line_num == 1 ||line_num == expected_line_length || i == 0|| i == line_length - 1) && line[i] != 'X' && line[i] != 'P' && line[i] != 'K') {
+            if ((line_num == 1 || i == 0|| i == line_length - 1) && line[i] != 'X' && line[i] != 'P' && line[i] != 'K') {
                 fprintf(stderr, "Error. Border of maze must be composed of 'X' characters.\n");
                 fclose(file);
                 return false;
