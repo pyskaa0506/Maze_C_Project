@@ -57,7 +57,6 @@ int main(int argc, char *argv[]) {
             } else {
                 fprintf(stderr, "Failed to get maze dimensions from file '%s'.\n", input_filename);
                 return EXIT_FAILURE;
-
             }
             how_many_chunks = txt_file_to_txt_chunks(filepath, cols, rows, chunk_rows_counter); //this separates the file into chunks and returns the number of chunks created
         } else {
@@ -68,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     char** maze = read_maze(filepath, rows, cols);
     //djikstra rn only works nicely for file 25x50_20.txt, but don't worry, it will be fixed
-    dijkstra(maze, rows, cols, 1, 0, filepath);  // Assuming starting point at (1,0) !!!
+//    dijkstra(maze, rows, cols, 1, 0, filepath);  // Assuming starting point at (1,0) !!!
 
     for (int i = 0; i < rows; i++) {
         free(maze[i]);
