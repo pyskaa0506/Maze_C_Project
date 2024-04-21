@@ -26,6 +26,6 @@ void save_maze(const char* filepath, char** maze, int rows, int cols);
 void backtrack_path(char** maze, int rows, int cols, int target_row, int target_col);
 
 // Implementation of Dijkstra's Algorithm
-void dijkstra(char** maze, int rows, int cols, int start_row, int start_col);
+void dijkstra(char** maze, int rows, int cols, int start_row, int start_col, char* filepath);
 
 #endif /* PATH_FINDING_H */

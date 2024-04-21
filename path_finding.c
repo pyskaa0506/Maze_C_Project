@@ -56,7 +56,7 @@ void backtrack_path(char** maze, int rows, int cols, int target_row, int target_
 
     // WARNING !!!
     // a really dumb way to get the original maze
-    // it would be better to save copy of each labirynt path, load and save it there
+    // it would be better to save copy of each labyrinth path, load and save it there
     // either way it's going to be needed to save the path into chunks so...
     char** maze_original = read_maze("../default_maps/25x50_20.txt", rows, cols);
 
@@ -116,7 +116,7 @@ void backtrack_path(char** maze, int rows, int cols, int target_row, int target_
 
 
 // Implementation of Dijkstra's Algorithm
-void dijkstra(char** maze, int rows, int cols, int start_row, int start_col) {
+void dijkstra(char** maze, int rows, int cols, int start_row, int start_col, char* filepath) {
 
     // Debugging variables
     int debug_most_unvisited_nodes = 0;

@@ -12,7 +12,7 @@ bool move_to_next_chunk(char** current_chunk, int16_t chunk_row_size, int16_t ch
             current_chunk_index++;
             char next_chunk_path[20];
             sprintf(next_chunk_path, "chunk%d.txt", current_chunk_index);
-            char** next_chunk = read_txt_chunk(next_chunk_path, chunk_col_size, chunk_row_size, chunk_row_size); 
+            char** next_chunk = read_txt_chunk(next_chunk_path, chunk_col_size, chunk_row_size);
             if (next_chunk == NULL) {
                 printf("B³¹d wczytywania kolejnego chunku.\n");
                 return false;
@@ -40,7 +40,7 @@ bool move_to_next_chunk(char** current_chunk, int16_t chunk_row_size, int16_t ch
             current_chunk_index--;
             char prev_chunk_path[20];
             sprintf(prev_chunk_path, "chunk%d.txt", current_chunk_index);
-            char** prev_chunk = read_txt_chunk(prev_chunk_path, chunk_col_size, chunk_row_size, chunk_row_size); // Poprawione wywo³anie funkcji
+            char** prev_chunk = read_txt_chunk(prev_chunk_path, chunk_col_size, chunk_row_size); // Poprawione wywo³anie funkcji
             if (prev_chunk == NULL) {
                 printf("B³¹d wczytywania poprzedniego chunku.\n");
                 return false;
@@ -68,7 +68,7 @@ bool move_to_next_chunk(char** current_chunk, int16_t chunk_row_size, int16_t ch
     current_chunk_index += total_chunks;
     char up_chunk_path[20];
     sprintf(up_chunk_path, "chunk%d.txt", current_chunk_index);
-    char** up_chunk = read_txt_chunk(up_chunk_path, chunk_col_size, chunk_row_size, chunk_row_size);
+    char** up_chunk = read_txt_chunk(up_chunk_path, chunk_col_size, chunk_row_size);
     if (up_chunk == NULL) 
     {
         printf("B³¹d wczytywania chunku powy¿ej.\n");
@@ -97,7 +97,7 @@ bool move_to_next_chunk(char** current_chunk, int16_t chunk_row_size, int16_t ch
     current_chunk_index += total_chunks;
     char down_chunk_path[20];
     sprintf(down_chunk_path, "chunk%d.txt", current_chunk_index);
-    char** down_chunk = read_txt_chunk(down_chunk_path, chunk_col_size, chunk_row_size, chunk_row_size);
+    char** down_chunk = read_txt_chunk(down_chunk_path, chunk_col_size, chunk_row_size);
     if (down_chunk == NULL) {
         printf("B³¹d wczytywania chunku poni¿ej.\n");
         return false;
@@ -124,7 +124,7 @@ bool move_to_next_chunk(char** current_chunk, int16_t chunk_row_size, int16_t ch
 
 
 void find_exit(char* initial_chunk_path, int16_t chunk_row_size, int16_t chunk_col_size, int16_t total_chunks) {
-    char** current_chunk = read_txt_chunk(initial_chunk_path, chunk_col_size, chunk_row_size, chunk_row_size);
+    char** current_chunk = read_txt_chunk(initial_chunk_path, chunk_col_size, chunk_row_size);
     if (current_chunk == NULL) {
         printf("B³¹d wczytywania pierwszego chunku.\n");
         return;
@@ -137,7 +137,7 @@ void find_exit(char* initial_chunk_path, int16_t chunk_row_size, int16_t chunk_c
 
     while (true) {
 
-        dijkstra(current_chunk, chunk_row_size, chunk_col_size, 0, 0);
+        dijkstra(current_chunk, chunk_row_size, chunk_col_size, 0, 0, "placeholder.txt");
 
         if (target_row != -1 && target_col != -1) {
             printf("Wyjœcie znaleziono w chunku %d.\n", current_chunk_index);
