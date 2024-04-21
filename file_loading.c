@@ -12,7 +12,7 @@ void print_usage(){
 
 // przetwarzanie argumentów za pomoca getopta
 void process_input(int argc, char *argv[], char **input_filename, char **output_filename) {
-    int opt;
+    int8_t opt;
 
     // Inicjalizacja output_filename na NULL
     *output_filename = NULL;
@@ -95,7 +95,7 @@ bool is_valid_maze_format_v2(const char *filename){
     }
 
     char line[MAX_LINE_LENGTH];
-    int num_p = 0, num_k = 0;
+    int8_t num_p = 0, num_k = 0;
     size_t expected_line_length = 0;
     size_t line_num = 0;
 
@@ -147,7 +147,7 @@ bool is_valid_maze_format_v2(const char *filename){
             }
         }
     }
-
+    free(file);
     fclose(file);
 
     // czy istnieje tylko jedno wejscie i wyjscie
@@ -170,7 +170,7 @@ bool is_binary_file_v2(const char *filename){
     }
 
     bool binary = false;
-    int ch;
+    int8_t ch;
     while ((ch = fgetc(file)) != EOF) { 
         if (ch < 0x07 || ch > 0x7E) { 
             binary = true;

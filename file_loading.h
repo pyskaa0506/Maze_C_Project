@@ -4,7 +4,7 @@
 #include <stdbool.h> //true and false
 #include <stdint.h> //int16_t
 
-#define MAX_LINE_LENGTH 10000
+#define MAX_LINE_LENGTH 6750
 
 void print_usage();
 

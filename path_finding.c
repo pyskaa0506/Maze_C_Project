@@ -7,6 +7,7 @@ int* add_node_and_distance(int* list, int* size, int node_index, int distance) {
     int* temp = realloc(list, (*size + 2) * sizeof(int));
     if (temp == NULL) {
         printf("Error reallocating memory.\n");
+        free(list);
         return NULL;
     }
     list = temp;
