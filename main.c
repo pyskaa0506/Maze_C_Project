@@ -32,7 +32,8 @@ int main(int argc, char *argv[]) {
     }
 
     // sprawdzenie, czy plik jest binarny czy tekstowy
-    if (is_binary_file_v2(input_filename)) {
+    bool is_binary = is_binary_file_v2(input_filename);
+    if (is_binary) {
         printf("File is binary.\n");
         if (is_valid_binary_maze_format_v2(input_filename)) {
             printf("Binary maze format is valid.\n");
@@ -79,6 +80,12 @@ int main(int argc, char *argv[]) {
 
     reverse_file("../steps.txt", "../chunks/reversed.input",  num_letters);
     change_directions_to_instructions_and_compress("../chunks/reversed.input", 'R' , num_letters, "../final_output.txt");
+
+    if (is_binary) {
+        compress_for_bin("../chunks/reversed.input", 'R', num_letters, "../final_output.txt");
+        modify_bin_file(input_filename, num_letters, "../final_output.txt");
+    }
+
     // zwolnienie pamiêci
 //    free(input_filename);
 //    free(output_filename);
