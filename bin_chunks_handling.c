@@ -89,5 +89,5 @@ int read_bin_file(char *filepath, int chunk_row_counter) {
     }
     fclose(file);
     fclose(file_output);
-    return txt_file_to_txt_chunks("../default_maps/bin_output.txt", (int16_t)((col - 1) / 2), (int16_t)((row - 1) / 2), chunk_row_counter);
+    return txt_file_to_txt_chunks("../default_maps/bin_output.txt", (int16_t)((col - 1) / 2), (int16_t)((row - 1) / 2), (int16_t) chunk_row_counter);
 }

@@ -4,7 +4,6 @@
 #include "chunks_handling.h"
 #include "bin_chunks_handling.h"
 #include "path_finding.h"
-#include "move_chunck.h"
 
 int main(int argc, char *argv[]) {
     // deklaracja zmiennych na nazwy plików
@@ -16,8 +15,10 @@ int main(int argc, char *argv[]) {
     int how_many_chunks = 0; // will probably be used in the future
 
 
+    input_filename = "../default_maps/25x50_20.txt";
+
     // getopt()
-    process_input(argc, argv, &input_filename, &output_filename);
+//    process_input(argc, argv, &input_filename, &output_filename);
 
     printf("Input filename: %s\n", input_filename);
     printf("Output filename: %s\n", output_filename);
@@ -65,18 +66,14 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    char** maze = read_maze(filepath, rows, cols);
-    //djikstra rn only works nicely for file 25x50_20.txt, but don't worry, it will be fixed
-//    dijkstra(maze, rows, cols, 1, 0, filepath);  // Assuming starting point at (1,0) !!!
 
-    for (int i = 0; i < rows; i++) {
-        free(maze[i]);
-    }
-    free(maze);
+    //djikstra rn only works nicely for file 25x50_20.txt, but don't worry, it will be fixed
+    dijkstra(rows, cols, 1, 0, filepath, chunk_rows_counter, how_many_chunks);  // Assuming starting point at (1,0) !!!
+
 
     // zwolnienie pamiêci
-    free(input_filename);
-    free(output_filename);
+//    free(input_filename);
+//    free(output_filename);
 
 ////    Tutorial do move_chuck
 //    char initial_chunk_path[20] = "chunk1.txt";

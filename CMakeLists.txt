@@ -6,12 +6,14 @@ set(CMAKE_C_STANDARD 11)
 include_directories(.)
 
 add_executable(Maze_C_Project
+        main.c
         file_loading.c
         file_loading.h
         chunks_handling.h
-        main.c
         chunks_handling.c
         bin_chunks_handling.h
         bin_chunks_handling.c
         path_finding.c
-        move_chunck.c)
+        path_finding.h
+        move_chunk.c
+        move_chunk.h)

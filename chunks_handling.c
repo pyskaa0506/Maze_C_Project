@@ -69,7 +69,7 @@ int txt_file_to_txt_chunks(const char *filepath, int16_t col, int16_t row, int16
 
 
         while (linesRead < chunk_rows_counter) {
-            for (int i = 0; i < col * 2 + 1; i++) fprintf(new_file, "X");
+            for (int i = 0; i < col; i++) fprintf(new_file, "X");
             fprintf(new_file, "\n");
             linesRead++;
         }

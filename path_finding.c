@@ -35,21 +35,6 @@ char** read_maze(const char* filepath, int rows, int cols) {
     return maze;
 }
 
-// Save the maze to a file
-void save_maze(const char* filepath, char** maze, int rows, int cols) {
-    FILE* file = fopen(filepath, "w");
-    if (!file) {
-        printf("Error opening file for writing.\n");
-        return;
-    }
-
-    for (int i = 0; i < rows; i++) {
-        fputs(maze[i], file);
-        fputc('\n', file);  // Add a newline after each row
-    }
-
-    fclose(file);
-}
 
 void backtrack_path(char** maze, int rows, int cols, int target_row, int target_col) {
     int current_row = target_row;
@@ -105,7 +90,7 @@ void backtrack_path(char** maze, int rows, int cols, int target_row, int target_
 
     // print labirynt, it's not nor being saves yet !
     for (int i = 0; i < rows; i++) {
-        printf("%s", maze_original[i]);
+        printf("%s", maze[i]);
     }
 
     // Free the memory allocated for maze_original
@@ -115,21 +100,84 @@ void backtrack_path(char** maze, int rows, int cols, int target_row, int target_
     free(maze_original);
 }
 
+char find_and_return_char_from_chunk(int *loaded_chunk_number, int chunk_row_counter, int cols, int current_col, int current_row, char **current_chunk, int how_many_chunks){
+    if ((current_row <= *loaded_chunk_number * chunk_row_counter - 1) && (current_row >= (*loaded_chunk_number - 1) * chunk_row_counter)) {
+        return current_chunk[current_row - (*loaded_chunk_number - 1) * chunk_row_counter][current_col];
+    }
+    if (current_row > (*loaded_chunk_number * chunk_row_counter) - 1)
+    {
+        while ((current_row > (*loaded_chunk_number * chunk_row_counter) - 1) && (*loaded_chunk_number * chunk_row_counter < how_many_chunks * chunk_row_counter - 1))
+        {
+            *loaded_chunk_number += 1;
+        }
+    } else {
+        while ((current_row < ((*loaded_chunk_number - 1) * chunk_row_counter)) && *loaded_chunk_number > 1)
+        {
+            *loaded_chunk_number -= 1;
+        }
+    }
+    char new_path[25];
+    snprintf(new_path, 25, "../chunks/%d.txt", *loaded_chunk_number);
+
+    for (int i = 0; i < chunk_row_counter; i++) {
+        free(current_chunk[i]);
+    }
+    free(current_chunk);
+
+    current_chunk = read_maze(new_path, chunk_row_counter, cols);
+
+    return current_chunk[current_row - (*loaded_chunk_number - 1) * chunk_row_counter][current_col];
+}
+
+void find_and_save_char_into_chunk(char direction_marks, int *loaded_chunk_number, int chunk_row_counter, int cols, int current_col, int current_row, char **current_chunk, int how_many_chunks){
+    // save the char into the chunk
+    if ((current_row <= *loaded_chunk_number * chunk_row_counter - 1) && (current_row >= (*loaded_chunk_number - 1) * chunk_row_counter)) {
+        current_chunk[current_row - (*loaded_chunk_number - 1) * chunk_row_counter][current_col] = direction_marks;
+    }
+    if (current_row > (*loaded_chunk_number * chunk_row_counter) - 1)
+    {
+        while ((current_row > (*loaded_chunk_number * chunk_row_counter) - 1) && (*loaded_chunk_number * chunk_row_counter < how_many_chunks * chunk_row_counter - 1))
+        {
+            *loaded_chunk_number += 1;
+        }
+    } else {
+        while ((current_row < ((*loaded_chunk_number - 1) * chunk_row_counter)) && *loaded_chunk_number > 1)
+        {
+            *loaded_chunk_number -= 1;
+        }
+    }
+    char new_path[25];
+    snprintf(new_path, 25, "../chunks/%d.txt", *loaded_chunk_number);
+}
 
 // Implementation of Dijkstra's Algorithm
-void dijkstra(char** maze, int rows, int cols, int start_row, int start_col, char* filepath) {
-
+void dijkstra(int rows, int cols, int start_row, int start_col, char *filepath, int16_t chunk_row_counter, int how_many_chunks) {
     // Debugging variables
     int debug_most_unvisited_nodes = 0;
     /////////////
 
+    int loaded_chunk_number = 3;
+    char** current_chunk = read_maze("../chunks/3.txt", chunk_row_counter, cols);
+
+    /////////////
+//    print maze using find_and_return_char_from_chunk
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            printf("%c", find_and_return_char_from_chunk(&loaded_chunk_number, chunk_row_counter, cols, j, i, current_chunk, how_many_chunks));
+            fflush(stdout);
+        }
+        printf("\n ");
+    }
+
+    ///////////// set 60row 20 col to "O"
+//    find_and_save_char_into_chunk('O', &loaded_chunk_number, chunk_row_counter, cols, 0, 60, current_chunk, how_many_chunks);
 
     char found = 0;
     int* unvisited = NULL;
     int unvisited_size = 0;
     unvisited = add_node_and_distance(unvisited, &unvisited_size, start_row * cols + start_col, 0);
 
-    while (unvisited_size > 0 && found == 0) {
+ /*   while (unvisited_size > 0 && found == 0) {
         // Find the node with the minimum distance
         int min_index = 1;
         for (int i = 3; i < unvisited_size; i += 2) {
@@ -149,7 +197,7 @@ void dijkstra(char** maze, int rows, int cols, int start_row, int start_col, cha
         // Remove the current node from the unvisited list
         unvisited[min_index - 1] = unvisited[unvisited_size - 2];
         unvisited[min_index] = unvisited[unvisited_size - 1];
-        unvisited_size -= 2;
+        unvisited_size -= 2; // potential memory leak here, should use realloc (?)
 
         int current_row = current / cols;
         int current_col = current % cols;
@@ -177,7 +225,7 @@ void dijkstra(char** maze, int rows, int cols, int start_row, int start_col, cha
             }
         }
     }
-
+*/
     printf("Most unvisited nodes: %d\n", debug_most_unvisited_nodes);
 
     free(unvisited);
