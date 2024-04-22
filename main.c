@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     char** maze = read_maze(filepath, rows, cols);
     //djikstra rn only works nicely for file 25x50_20.txt, but don't worry, it will be fixed
-    dijkstra(maze, rows, cols, 1, 0, filepath);  // Assuming starting point at (1,0) !!!
+    //dijkstra(maze, rows, cols, 1, 0, filepath);  // Assuming starting point at (1,0) !!!
 
     for (int i = 0; i < rows; i++) {
         free(maze[i]);

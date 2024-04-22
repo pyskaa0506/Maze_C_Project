@@ -26,14 +26,31 @@ char** read_maze(const char* filepath, int rows, int cols) {
     }
 
     char** maze = malloc(rows * sizeof(char*));
+    if (!maze) {
+        printf("Error allocating memory for maze rows.\n");
+        fclose(file);
+        return NULL;
+    }
+
     for (int i = 0; i < rows; i++) {
         maze[i] = malloc((cols + 1) * sizeof(char));
+        if (!maze[i]) {
+            printf("Error allocating memory for maze row %d.\n", i);
+            // Zwalnianie pamiêci dla poprzednio zaalokowanych wierszy
+            for (int j = 0; j < i; j++) {
+                free(maze[j]);
+            }
+            free(maze);
+            fclose(file);
+            return NULL;
+        }
         fgets(maze[i], cols + 2, file);
     }
 
     fclose(file);
     return maze;
 }
+
 
 // Save the maze to a file
 void save_maze(const char* filepath, char** maze, int rows, int cols) {

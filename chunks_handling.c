@@ -4,6 +4,12 @@
 #include <string.h>
 #include <ctype.h>
 
+void free_txt_chunk(char **buffer, int16_t chunk_row_counter) {
+    for (int i = 0; i < chunk_row_counter; i++) {
+        free(buffer[i]);
+    }
+    free(buffer);
+}
 
 char **read_txt_chunk(char *filepath, int16_t col, int16_t chunk_row_counter) {
     FILE *file = fopen(filepath, "r");
@@ -22,7 +28,9 @@ char **read_txt_chunk(char *filepath, int16_t col, int16_t chunk_row_counter) {
         buffer[i] = (char *)malloc(sizeof(char) * (col * 2 + 3));
         if (buffer[i] == NULL){
             fprintf(stderr,"Error: Couldn't allocate memory\n");
-            exit(1);
+            fclose(file);
+            free_txt_chunk(buffer, i); // Zwolnienie ju¿ zaalokowanej pamiêci
+            return NULL;
         }
         fgets(buffer[i], col * 2 + 3, file);
     }
