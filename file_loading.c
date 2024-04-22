@@ -14,9 +14,6 @@ void print_usage(){
 void process_input(int argc, char *argv[], char **input_filename, char **output_filename) {
     int opt;
 
-    // Inicjalizacja output_filename na NULL
-    *output_filename = NULL;
-
     while ((opt = getopt(argc, argv, "f:o:h")) != -1) {
         switch (opt) {
             case 'f':
@@ -189,16 +186,16 @@ bool is_valid_binary_maze_format_v2(const char *filename){
         return false;
     }
 
-    char line[MAX_LINE_LENGTH];
+    char line[MAX_LINE_LENGTH_BIN];
     size_t expected_line_length = 0;
     size_t line_num = 1;
 
-    while(fread(line, 2, MAX_LINE_LENGTH, file) > 0){ 
+    while(fread(line, 2, MAX_LINE_LENGTH_BIN, file) > 0){ 
         line_num++;
 
         // sprawdzenie d?ugosci linii
         size_t line_length = strlen(line);
-        if (line_length > MAX_LINE_LENGTH) {
+        if (line_length > MAX_LINE_LENGTH_BIN) {
             fprintf(stderr, "Error. Line too long in maze file (line %zu).\n", line_num);
             fclose(file);
             return false;
