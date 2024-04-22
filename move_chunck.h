@@ -4,12 +4,29 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define START 'P'
-#define TARGET 'K'
+typedef struct {
+    char** maze;
+    int rows;
+    int cols;
+    
+} Chunk;
 
-bool move_to_next_chunk(char** current_chunk, int16_t chunk_row_size, int16_t chunk_col_size, int16_t current_chunk_index, int16_t total_chunks, char direction);
+// Funkcja wczytuj¹ca chunk z pliku
+Chunk* load_chunk(const char* directory_path, int chunk_number);
 
-void find_exit(char* initial_chunk_path, int16_t chunk_row_size, int16_t chunk_col_size, int16_t total_chunks);
+// Funkcja zapisuj¹ca chunk do pliku
+void save_chunk(const char* filepath, Chunk* chunk);
+
+// Funkcja znajduj¹ca punkt wejœcia w danym chunku
+void find_entry_point(Chunk* chunk, int* entry_row, int* entry_col);
+
+void dijkstra_wrapper(Chunk* current_chunk, int global_start_row, int global_start_col, int global_target_row, int global_target_col, char* maze_filepath);
+
+void convert_coordinates(Chunk* current_chunk, int global_row, int global_col, int* local_row, int* local_col);
+
+Chunk* find_chunk_by_coordinates(const char* directory_path, int global_row, int global_col);
+
+//free chunk 157
 
 #endif /* MOVE_CHUNCK*/
 

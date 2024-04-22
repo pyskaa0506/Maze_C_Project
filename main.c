@@ -65,28 +65,27 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    char** maze = read_maze(filepath, rows, cols);
-    //djikstra rn only works nicely for file 25x50_20.txt, but don't worry, it will be fixed
-//    dijkstra(maze, rows, cols, 1, 0, filepath);  // Assuming starting point at (1,0) !!!
+    // Znajd? odpowiedni chunk na podstawie wspó?rz?dnych lub innych kryteriów
+    Chunk* current_chunk = find_chunk_by_coordinates("../chunks", 0, 0); // Przyk?adowe wspó?rz?dne (0, 0)
 
+
+    // Wczytanie labiryntu
+    char** maze = read_maze(filepath, rows, cols);
+
+    // Losowe wspó?rz?dne pocz?tkowe i ko?cowe
+    int start_row = 1;
+    int start_col = 0;
+    int target_row = rows - 1;
+    int target_col = cols - 1;
+
+    // Wywo?anie funkcji dijkstra_wrapper
+    dijkstra_wrapper(current_chunk, start_row, start_col, target_row, target_col, filepath);
+
+    // Zwolnienie pami?ci
     for (int i = 0; i < rows; i++) {
         free(maze[i]);
     }
     free(maze);
-
-    // zwolnienie pamiêci
-    free(input_filename);
-    free(output_filename);
-
-////    Tutorial do move_chuck
-//    char initial_chunk_path[20] = "chunk1.txt";
-//
-//    int16_t chunk_row_size = 10;
-//    int16_t chunk_col_size = 10;
-//
-//    int16_t total_chunks = 10;
-//
-//    find_exit(initial_chunk_path, chunk_row_size, chunk_col_size, total_chunks);
 
     return EXIT_SUCCESS;
 }

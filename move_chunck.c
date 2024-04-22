@@ -6,174 +6,157 @@
 #include "move_chunck.h"
 #include "path_finding.h"
 
-bool move_to_next_chunk(char** current_chunk, int16_t chunk_row_size, int16_t chunk_col_size, int16_t current_chunk_index, int16_t total_chunks, char direction) {
-    if (direction == 'R') {
-        if (current_chunk_index < total_chunks) {
-            current_chunk_index++;
-            char next_chunk_path[20];
-            sprintf(next_chunk_path, "chunk%d.txt", current_chunk_index);
-            char** next_chunk = read_txt_chunk(next_chunk_path, chunk_col_size, chunk_row_size);
-            if (next_chunk == NULL) {
-                printf("B³¹d wczytywania kolejnego chunku.\n");
-                return false;
-            } 
-            else 
-            {
-                // zwolnienie pamieci poprzedniego kierunku
-                for (int i = 0; i < chunk_row_size; i++) {
-                    free(current_chunk[i]);
-                }
-                free(current_chunk);
-                current_chunk = next_chunk;
-                return true;
+#include <stdio.h>
+#include <stdlib.h>
+
+
+Chunk* load_chunk(const char* directory_path, int chunk_number) {
+    char filepath[256];
+    snprintf(filepath, sizeof(filepath), "%s/%d.txt", directory_path, chunk_number);
+
+    printf("Attempting to open file: %s\n", filepath);
+
+    FILE *file = fopen(filepath, "r");
+    if (!file) {
+        fprintf(stderr, "Error: Couldn't open the file %s\n", filepath);
+        return NULL;
+    }
+
+    Chunk* chunk = (Chunk*)malloc(sizeof(Chunk));
+    if (!chunk) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        fclose(file);
+        return NULL;
+    }
+
+    if (fscanf(file, "%d %d\n", &chunk->rows, &chunk->cols) != 2) {
+        fprintf(stderr, "Error: Couldn't read dimensions from file %s\n", filepath);
+        fclose(file);
+        free(chunk);
+        return NULL;
+    }
+
+    chunk->maze = (char**)malloc(chunk->rows * sizeof(char*));
+    if (!chunk->maze) {
+        fprintf(stderr, "Error: Memory allocation failed\n");
+        fclose(file);
+        free(chunk);
+        return NULL;
+    }
+    for (int i = 0; i < chunk->rows; i++) {
+        chunk->maze[i] = (char*)malloc((chunk->cols + 1) * sizeof(char));
+        if (!chunk->maze[i]) {
+            fprintf(stderr, "Error: Memory allocation failed\n");
+            fclose(file);
+            for (int j = 0; j < i; j++) {
+                free(chunk->maze[j]);
             }
-        } 
-        else 
-        {
-            printf("Nie ma wiêcej chunków w prawo.\n");
-            return false;
+            free(chunk->maze);
+            free(chunk);
+            return NULL;
         }
     }
 
-    else if (direction == 'L') {
-        if (current_chunk_index > 1) {
-            current_chunk_index--;
-            char prev_chunk_path[20];
-            sprintf(prev_chunk_path, "chunk%d.txt", current_chunk_index);
-            char** prev_chunk = read_txt_chunk(prev_chunk_path, chunk_col_size, chunk_row_size); // Poprawione wywo³anie funkcji
-            if (prev_chunk == NULL) {
-                printf("B³¹d wczytywania poprzedniego chunku.\n");
-                return false;
-            } 
-            else 
-            {
-                for (int i = 0; i < chunk_row_size; i++) {
-                    free(current_chunk[i]);
-                }
-                free(current_chunk);
-                current_chunk = prev_chunk;
-                return true;
+    for (int i = 0; i < chunk->rows; i++) {
+        if (fgets(chunk->maze[i], chunk->cols + 1, file) == NULL) {
+            fprintf(stderr, "Error: Couldn't read maze from file %s\n", filepath);
+            fclose(file);
+            for (int j = 0; j < chunk->rows; j++) {
+                free(chunk->maze[j]);
             }
-        } 
-        else 
-        {
-            printf("Nie ma wiêcej chunków w lewo.\n");
-            return false;
+            free(chunk->maze);
+            free(chunk);
+            return NULL;
         }
     }
 
-    else if (direction == 'U') 
-    {
-    if (current_chunk_index + total_chunks <= total_chunks * 2) {
-    current_chunk_index += total_chunks;
-    char up_chunk_path[20];
-    sprintf(up_chunk_path, "chunk%d.txt", current_chunk_index);
-    char** up_chunk = read_txt_chunk(up_chunk_path, chunk_col_size, chunk_row_size);
-    if (up_chunk == NULL) 
-    {
-        printf("B³¹d wczytywania chunku powy¿ej.\n");
-        return false;
-    } 
-    else 
-    {
-        for (int i = 0; i < chunk_row_size; i++) {
-            free(current_chunk[i]);
-        }
-
-        free(current_chunk);
-        current_chunk = up_chunk;
-        return true;
-    }
-    } 
-    else {
-    printf("Nie ma wiêcej chunków u góry.\n");
-    return false;
-    }
-    }
-
-    else if (direction == 'D') 
-    {
-        if (current_chunk_index + total_chunks <= total_chunks * 2) {
-    current_chunk_index += total_chunks;
-    char down_chunk_path[20];
-    sprintf(down_chunk_path, "chunk%d.txt", current_chunk_index);
-    char** down_chunk = read_txt_chunk(down_chunk_path, chunk_col_size, chunk_row_size);
-    if (down_chunk == NULL) {
-        printf("B³¹d wczytywania chunku poni¿ej.\n");
-        return false;
-    } else 
-    {
-        for (int i = 0; i < chunk_row_size; i++) {
-            free(current_chunk[i]);
-        }
-        free(current_chunk);
-        current_chunk = down_chunk;
-        return true;
-    }
-    } 
-    else 
-    {
-    printf("Nie ma wiêcej chunków w dó³.\n");
-    return false;
-        }
-    }
-
-
-    return false; // false = nie uda³o siê przejœæ do kolejnego chunku
+    fclose(file);
+    return chunk;
 }
 
 
-void find_exit(char* initial_chunk_path, int16_t chunk_row_size, int16_t chunk_col_size, int16_t total_chunks) {
-    char** current_chunk = read_txt_chunk(initial_chunk_path, chunk_col_size, chunk_row_size);
-    if (current_chunk == NULL) {
-        printf("B³¹d wczytywania pierwszego chunku.\n");
+
+void save_chunk(const char* filepath, Chunk* chunk) {
+    FILE *file = fopen(filepath, "w");
+    if (!file) {
+        fprintf(stderr, "Error: Couldn't open the file %s for writing\n", filepath);
         return;
     }
 
-    int16_t current_chunk_index = 1; 
-    int16_t target_row = -1; 
-    int16_t target_col = -1;
+    fprintf(file, "%d %d\n", chunk->rows, chunk->cols);
 
+    for (int i = 0; i < chunk->rows; i++) {
+        fprintf(file, "%s\n", chunk->maze[i]);
+    }
 
-    while (true) {
+    fclose(file);
+}
 
-        dijkstra(current_chunk, chunk_row_size, chunk_col_size, 0, 0, "placeholder.txt");
-
-        if (target_row != -1 && target_col != -1) {
-            printf("Wyjœcie znaleziono w chunku %d.\n", current_chunk_index);
-            break;
-        }
-
-        char direction = 'R'; 
-        bool found_exit_in_next_chunk = false;
-
-        while (direction != ' ') {
-            found_exit_in_next_chunk = move_to_next_chunk(current_chunk, chunk_row_size, chunk_col_size, current_chunk_index, total_chunks, direction);
-            if (found_exit_in_next_chunk) {
-                if (target_row != -1 && target_col != -1) {
-                    printf("Wyjœcie znaleziono w chunku %d.\n", current_chunk_index);
-                    return;
-                }
-
-                break;
-            }
-
-            if (direction == 'R') {
-                direction = 'L'; 
-            } else if (direction == 'L') {
-                direction = 'U'; 
-            } else if (direction == 'U') {
-                direction = 'D';
-            } else if (direction == 'D') {
-                printf("Nie znaleziono wyjœcia w ¿adnym z kierunków.\n");
+void find_entry_point(Chunk* chunk, int* entry_row, int* entry_col) {
+    for (int i = 0; i < chunk->rows; i++) {
+        for (int j = 0; j < chunk->cols; j++) {
+            if (chunk->maze[i][j] == 'P') {
+                *entry_row = i;
+                *entry_col = j;
                 return;
             }
         }
-
-        if (!found_exit_in_next_chunk) {
-            printf("Nie znaleziono wyjœcia w ¿adnym z s¹siednich chunków.\n");
-            return;
-        }
     }
+    *entry_row = -1;
+    *entry_col = -1;
 }
 
+void convert_coordinates(Chunk* current_chunk, int global_row, int global_col, int* local_row, int* local_col) {
+    int chunk_offset_row = global_row % current_chunk->rows;
+    int chunk_offset_col = global_col % current_chunk->cols;
+
+    *local_row = chunk_offset_row;
+    *local_col = chunk_offset_col;
+}
+
+
+void dijkstra_wrapper(Chunk* current_chunk, int global_start_row, int global_start_col, int global_target_row, int global_target_col, char* maze_filepath) {
+    int local_start_row, local_start_col;
+    int local_target_row, local_target_col;
+
+    convert_coordinates(current_chunk, global_start_row, global_start_col, &local_start_row, &local_start_col);
+    convert_coordinates(current_chunk, global_target_row, global_target_col, &local_target_row, &local_target_col);
+
+    dijkstra(current_chunk->maze, current_chunk->rows, current_chunk->cols, local_start_row, local_start_col, maze_filepath);
+}
+
+Chunk* find_chunk_by_coordinates(const char* directory_path, int global_row, int global_col) {
+    DIR *dir;
+    struct dirent *entry;
+    Chunk *found_chunk = NULL;
+
+    dir = opendir(directory_path);
+    if (dir == NULL) {
+        fprintf(stderr, "Error: opening directory failed %s\n", directory_path);
+        return NULL;
+    }
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            char file_path[1024];
+            snprintf(file_path, sizeof(file_path), "%s/%s", directory_path, entry->d_name);
+
+            // Pobierz numer chunka z nazwy pliku
+            int chunk_number = atoi(entry->d_name);
+
+            Chunk *chunk = load_chunk(directory_path, chunk_number);
+            if (chunk == NULL) {
+                fprintf(stderr, "Error: Couldn't load chunk from file %s\n", file_path);
+                continue;
+            }
+
+            if (global_row < chunk->rows && global_col < chunk->cols) {
+                found_chunk = chunk;
+                break;
+            } else {
+                free(chunk);
+            }
+        }
+    }
+    closedir(dir);
+    return found_chunk;
+}
