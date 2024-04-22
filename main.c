@@ -4,6 +4,7 @@
 #include "chunks_handling.h"
 #include "bin_chunks_handling.h"
 #include "path_finding.h"
+#include "file_saving.h"
 
 int main(int argc, char *argv[]) {
     // deklaracja zmiennych na nazwy plików
@@ -66,24 +67,20 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    dijkstra(rows, cols, 1, 0, chunk_rows_counter, how_many_chunks);  // Assuming starting point at (1,0) !!!
 
-    //djikstra rn only works nicely for file 25x50_20.txt, but don't worry, it will be fixed
-    dijkstra(rows, cols, 1, 0, filepath, chunk_rows_counter, how_many_chunks);  // Assuming starting point at (1,0) !!!
+    int num_letters;
+    FILE *input_file = fopen("../steps_count.txt", "r");
+    if (input_file == NULL) {
+        perror("Error");
+        exit(EXIT_FAILURE);
+    }
+    fscanf(input_file, "%d", &num_letters);
 
-
+    reverse_file("../steps.txt", "../chunks/reversed.input",  num_letters);
+    change_directions_to_instructions_and_compress("../chunks/reversed.input", 'R' , num_letters, "../final_output.txt");
     // zwolnienie pamiêci
 //    free(input_filename);
 //    free(output_filename);
-
-////    Tutorial do move_chuck
-//    char initial_chunk_path[20] = "chunk1.txt";
-//
-//    int16_t chunk_row_size = 10;
-//    int16_t chunk_col_size = 10;
-//
-//    int16_t total_chunks = 10;
-//
-//    find_exit(initial_chunk_path, chunk_row_size, chunk_col_size, total_chunks);
-
     return EXIT_SUCCESS;
 }
