@@ -99,9 +99,10 @@ void delete_files_in_directory(const char *directory_path) {
 
             if (remove(file_path) != 0) {
                 fprintf(stderr, "Error: deleting file failed: %s\n", file_path);
-            } else {
-                printf("Deleted file: %s\n", file_path);
             }
+//            else {
+//                printf("Deleted file: %s\n", file_path);
+//            }
         }
     }
     closedir(dir);

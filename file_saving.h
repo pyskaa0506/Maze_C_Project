@@ -1,7 +1,12 @@
 
 #ifndef MAZE_BIN_FILE_SAVING_H
 #define MAZE_BIN_FILE_SAVING_H
-
+void print_file_to_console(const char *input_file);
+void add_char_to_end(const char *input_file, char ch);
 void reverse_file(const char *input_file, const char *output_file, int num_letters);
-void change_directions_to_instructions_and_compress(const char *input_file, char starting_pos, int num_letters, const char *final_output);
+void txt_compress(const char *input_file, int num_letters, const char *final_output);
+int bin_compress(const char *input_file, int num_letters, const char *final_output);
+void modify_bin_file(char *input_bin_file, int code_words, char *output_file);
+void change_directions(char *input_file, char *output_file, int num_letters);
+void copy_file(const char *input_file, const char *output_file, const char *path);
 #endif //MAZE_BIN_FILE_SAVING_H

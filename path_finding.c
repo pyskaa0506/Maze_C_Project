@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "path_finding.h"
+#include "move_chunk.h"
 
 // Function to add a node and its distance to the unvisited list
 int* add_node_and_distance(int* list, int* size, int node_index, int distance) {
@@ -17,98 +18,10 @@ int* add_node_and_distance(int* list, int* size, int node_index, int distance) {
     return list;
 }
 
-// Read the maze from a file
-char** read_maze(const char* filepath, int rows, int cols) {
-    FILE* file = fopen(filepath, "r");
-    if (!file) {
-        printf("Error opening file.\n");
-        return NULL;
-    }
-
-    char** maze = malloc(rows * sizeof(char*));
-    for (int i = 0; i < rows; i++) {
-        maze[i] = malloc((cols + 1) * sizeof(char));
-        fgets(maze[i], cols + 2, file);
-    }
-
-    fclose(file);
-    return maze;
-}
-
-char find_and_return_char_from_chunk(int *loaded_chunk_number, int chunk_row_counter, int cols, int current_col, int current_row, char ***current_chunk, int how_many_chunks){
-    if ((current_row <= *loaded_chunk_number * chunk_row_counter - 1) && (current_row >= (*loaded_chunk_number - 1) * chunk_row_counter)) {
-        return (*current_chunk)[current_row - (*loaded_chunk_number - 1) * chunk_row_counter][current_col];
-    }
-    if (current_row > (*loaded_chunk_number * chunk_row_counter) - 1)
-    {
-        while ((current_row > (*loaded_chunk_number * chunk_row_counter) - 1) && (*loaded_chunk_number * chunk_row_counter < how_many_chunks * chunk_row_counter - 1))
-        {
-            *loaded_chunk_number += 1;
-        }
-    } else {
-        while ((current_row < ((*loaded_chunk_number - 1) * chunk_row_counter)) && *loaded_chunk_number > 1)
-        {
-            *loaded_chunk_number -= 1;
-        }
-    }
-    char new_path[25];
-    snprintf(new_path, 25, "../chunks/%d.txt", *loaded_chunk_number);
-
-    for (int i = 0; i < chunk_row_counter; i++) {
-        free((*current_chunk)[i]);
-    }
-    free(*current_chunk);
-
-    (*current_chunk) = read_maze(new_path, chunk_row_counter, cols);
-
-    return (*current_chunk)[current_row - (*loaded_chunk_number - 1) * chunk_row_counter][current_col];
-}
-
-void find_and_save_char_into_chunk(char new_char, int *loaded_chunk_number, int chunk_row_counter, int cols, int current_col, int current_row, char ***current_chunk, int how_many_chunks){
-    if ((current_row <= *loaded_chunk_number * chunk_row_counter - 1) && (current_row >= (*loaded_chunk_number - 1) * chunk_row_counter)) {
-        (*current_chunk)[current_row - (*loaded_chunk_number - 1) * chunk_row_counter][current_col] = new_char;
-    }
-    if (current_row > (*loaded_chunk_number * chunk_row_counter) - 1)
-    {
-        while ((current_row > (*loaded_chunk_number * chunk_row_counter) - 1) && (*loaded_chunk_number * chunk_row_counter < how_many_chunks * chunk_row_counter - 1))
-        {
-            *loaded_chunk_number += 1;
-        }
-    } else {
-        while ((current_row < ((*loaded_chunk_number - 1) * chunk_row_counter)) && *loaded_chunk_number > 1)
-        {
-            *loaded_chunk_number -= 1;
-        }
-    }
-    char new_path[25];
-    snprintf(new_path, 25, "../chunks/%d.txt", *loaded_chunk_number);
-
-    for (int i = 0; i < chunk_row_counter; i++) {
-        free((*current_chunk)[i]);
-    }
-    free(*current_chunk);
-
-    (*current_chunk) = read_maze(new_path, chunk_row_counter, cols);
-    (*current_chunk)[current_row - (*loaded_chunk_number - 1) * chunk_row_counter][current_col] = new_char;
-
-    // Save the updated chunk back to the file
-    FILE* file = fopen(new_path, "w");
-    if (!file) {
-        printf("Error opening file.\n");
-        return;
-    }
-
-    for (int i = 0; i < chunk_row_counter; i++) {
-        fprintf(file, "%s", (*current_chunk)[i]);
-    }
-
-    fclose(file);
-}
-
 void backtrack_path(char*** current_chunk, int rows, int cols, int current_row, int current_col, int* loaded_chunk_number, int chunk_row_counter, int how_many_chunks)
 {
     int number_of_steps = 0;
-    FILE* file = fopen("../steps.txt", "w");
+    FILE* file = fopen("../tmp/steps.txt", "w");
 
     while (find_and_return_char_from_chunk(loaded_chunk_number, chunk_row_counter, cols, current_col, current_row, current_chunk, how_many_chunks) != START) {
         number_of_steps+=1;
@@ -161,7 +74,7 @@ void backtrack_path(char*** current_chunk, int rows, int cols, int current_row, 
         return;
     }
 
-    FILE* count_file = fopen("../steps_count.txt", "w");
+    FILE* count_file = fopen("../tmp/steps_count.txt", "w");
     if (!count_file) {
         printf("Error opening file.\n");
         return;
