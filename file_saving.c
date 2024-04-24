@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <ctype.h>
+#include <ctype.h>
 #include "file_saving.h"
 
 
@@ -69,7 +71,7 @@ int bin_compress(const char *input_file, int num_letters, const char *final_outp
         if (ch == prev_char) {
             count++;
         } else {
-            fprintf(final_fp, "%c %d", prev_char, count);
+            fprintf(final_fp, "%c%d", prev_char, count);
             prev_char = ch;
             count = 1;
             code_words++;
@@ -77,7 +79,7 @@ int bin_compress(const char *input_file, int num_letters, const char *final_outp
     }
 
     // Write the last character
-    fprintf(final_fp, "%c %d", prev_char, count);
+    fprintf(final_fp, "%c%d", prev_char, count);
 
     // Close files
     fclose(output_fp);
@@ -209,9 +211,55 @@ void copy_file(const char *input_file, const char *output_file, const char *path
     fclose(output_fp);
 }
 
+void copy_file_bin(const char *original_file, const char *copied_file, const char *destination_path) {
+    FILE *original_fp = fopen(original_file, "rb"); // Open original file for reading in binary mode
+    if (!original_fp) {
+        perror("Error opening original file");
+        return;
+    }
+
+    // Construct the full path for the copied file in the destination folder
+    char full_path[FILENAME_MAX];
+    snprintf(full_path, sizeof(full_path), "%s/%s", destination_path, copied_file);
+
+    FILE *copied_fp = fopen(full_path, "wb"); // Open or create destination file for writing in binary mode
+    if (!copied_fp) {
+        perror("Error opening copied file");
+        fclose(original_fp);
+        return;
+    }
+
+    // Read and write data in blocks
+    char buffer[1024];
+    size_t bytes_read;
+    while ((bytes_read = fread(buffer, 1, sizeof(buffer), original_fp)) > 0) {
+        fwrite(buffer, 1, bytes_read, copied_fp);
+    }
+
+    // Close files
+    fclose(original_fp);
+    fclose(copied_fp);
+}
+
+void print_from_offset(FILE *file, int offset){
+    fseek(file, offset, SEEK_SET);
+    char ch;
+    while ((ch = fgetc(file)) != EOF) {
+        printf("%c", ch);
+    }
+}
+
 void modify_bin_file(char *input_bin_file, int code_words, char *output_file){
+    printf("Codewords: %d\n", code_words);
     FILE *file = fopen(input_bin_file, "r+b");
-    fseek(file, 29, SEEK_CUR);
+    if (file == NULL) {
+        perror("Error");
+        return;
+    }
+
+    // Seek to the position of counter
+    fseek(file, 29, SEEK_SET);
+
     int32_t counter;
     int32_t solution_offset;
     fread(&counter, sizeof(int32_t), 1, file);
@@ -219,12 +267,20 @@ void modify_bin_file(char *input_bin_file, int code_words, char *output_file){
     printf("Counter: %d\n", counter);
     printf("Solution offset: %d\n", solution_offset);
 
-    fseek(file, -4, SEEK_CUR);
+    // Calculate new_solution_offset
     int32_t new_solution_offset = counter * 3 + 29;
+    printf("New solution offset: %d\n", new_solution_offset);
+
+    // Write new_solution_offset to the file
+    fseek(file, 29 + sizeof(int32_t), SEEK_SET);
     fwrite(&new_solution_offset, sizeof(int32_t), 1, file);
 
-    fseek(file, 0, SEEK_SET);
-    fseek(file, solution_offset, SEEK_CUR);
+    fseek(file, 29 + sizeof(int32_t), SEEK_SET);
+    fread(&solution_offset, sizeof(int32_t), 1, file);
+    printf("Solution offset: %d\n", solution_offset);
+
+    // Move the file pointer to the new solution_offset position
+    fseek(file, new_solution_offset, SEEK_SET);
 
     //write solution id at start of offset 0x52524243
     int32_t solution_id = 0x52524243;
@@ -238,9 +294,13 @@ void modify_bin_file(char *input_bin_file, int code_words, char *output_file){
         perror("Error");
         exit(EXIT_FAILURE);
     }
-    char ch;
-    while ((ch = fgetc(output_fp)) !=EOF) {
-        fwrite(&ch, sizeof(char), 1, file);
+    int ch;
+    int8_t value;
+    while ((ch = fgetc(output_fp)) != EOF) {
+        if (isdigit(ch)) {
+            value = (int8_t)(ch - '0');
+            fwrite(&value, sizeof(int8_t), 1, file);
+        }
     }
     fclose(output_fp);
     fclose(file);

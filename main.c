@@ -16,10 +16,10 @@ int main(int argc, char *argv[]) {
     int how_many_chunks = 0; // will probably be used in the future
 
 
-//    input_filename = "../default_maps/maze.bin";
+    input_filename = "../default_maps/maze.bin";
 
     // getopt()
-    process_input(argc, argv, &input_filename, &output_filename);
+//    process_input(argc, argv, &input_filename, &output_filename);
 
     printf("Input filename: %s\n", input_filename);
     printf("Output filename: %s\n", output_filename);
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("Loading file... This may take a while.\n");
+    printf("Finding path... This may take a while.\n");
     dijkstra(rows, cols, 1, 0, chunk_rows_counter, how_many_chunks);  // Assuming starting point at (1,0) !!!
 
     int num_letters;
@@ -95,13 +95,13 @@ int main(int argc, char *argv[]) {
                 modify_bin_file(input_filename, code_words , "../tmp/final_output.txt");
             } else if (answer == 'n' || answer == 'N'){
                 printf("Saving to output.bin...\n");
-                copy_file(input_filename, "output.bin", "../results/");
+                copy_file_bin(input_filename, "output.bin", "../results/");
                 modify_bin_file("../results/output.bin", code_words , "../tmp/final_output.txt");
             } else {
                 printf("Invalid answer.\n");
             }
         } else{
-            copy_file(input_filename, output_filename, "../results/");
+            copy_file_bin(input_filename, output_filename, "../results/");
             modify_bin_file(output_filename, code_words , "../tmp/final_output.txt");
         }
 

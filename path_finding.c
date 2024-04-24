@@ -92,6 +92,10 @@ void backtrack_path(char*** current_chunk, int rows, int cols, int current_row, 
 void dijkstra(int rows, int cols, int start_row, int start_col, int16_t chunk_row_counter, int how_many_chunks)
 {
     int loaded_chunk_number = 1;
+    bool *loaded_chunks = malloc(how_many_chunks * sizeof(bool));
+    for (int i = 0; i < how_many_chunks; i++) {
+        loaded_chunks[i] = false;
+    }
     char** current_chunk = read_maze("../chunks/1.txt", chunk_row_counter, cols);
 
     if (current_chunk == NULL) {
@@ -160,7 +164,14 @@ void dijkstra(int rows, int cols, int start_row, int start_col, int16_t chunk_ro
                 }
             }
         }
+        if(loaded_chunks[loaded_chunk_number - 1] == false)
+        {
+            loaded_chunks[loaded_chunk_number - 1] = true;
+            printf("Loaded chunk %d/%d\n", loaded_chunk_number, how_many_chunks);
+        }
     }
+
+
     free(unvisited);
     for (int i = 0; i < chunk_row_counter; i++) {
         free(current_chunk[i]);

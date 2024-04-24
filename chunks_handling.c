@@ -80,7 +80,7 @@ int txt_file_to_txt_chunks(const char *filepath, size_t col, size_t row, size_t 
             fprintf(new_file, "%s",(char *)(buffer + linesRead * (cols_in_file)));
             linesRead++;
         }
-        //create a line of x's in a length of cols_in_file
+
 
 
         while (linesRead < chunk_rows_counter) {
@@ -114,9 +114,10 @@ void delete_files_in_directory(const char *directory_path) {
 
             if (remove(file_path) != 0) {
                 fprintf(stderr, "Error: deleting file failed: %s\n", file_path);
-            } else {
-                printf("Deleted file: %s\n", file_path);
             }
+//            else {
+//                printf("Deleted file: %s\n", file_path);
+//            }
         }
     }
     closedir(dir);
