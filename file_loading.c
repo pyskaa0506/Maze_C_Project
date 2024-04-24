@@ -5,10 +5,21 @@
 #include "file_loading.h"
 
 // f-cja do wyszwietlania info o uzyciu programy
+// f-cja do wyswietlania info o uzyciu programy
 void print_usage(){
-    printf("Usage of the programme - program_name -f [maze_file.txt] [-o output_file.txt] [-h]\n");
-
+    printf("Usage of the program: \n");
+    printf("program_name -f [maze_file.txt] [-o output_file.txt] [-h]\n\n");
+    printf("Options:\n");
+    printf("-f\tSpecify the input maze file (required)\n");
+    printf("-o\tSpecify the output file (optional)\n");
+    printf("-h\tDisplay this help message\n\n");
+    printf("Description:\n");
+    printf("This program reads a maze from a text file and performs various operations on it.\n");
+    printf("It can validate the maze format, find a solution path, and output the result to a file.\n");
+    printf("The maze file should contain a rectangular grid of characters representing walls 'X', paths ' ',\n");
+    printf("starting point 'P', and exit 'K' point. The program supports both text and binary maze file formats.\n");
 }
+
 
 // przetwarzanie argumentów za pomoca getopta
 void process_input(int argc, char *argv[], char **input_filename, char **output_filename) {

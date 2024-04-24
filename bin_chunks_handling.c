@@ -79,8 +79,9 @@ int read_bin_file(char *filepath, int chunk_row_counter) {
 
     unsigned char *buffer = (unsigned char *)malloc(sizeof(unsigned char) * 3);
         if (buffer == NULL) {
-            printf("Error: Memory allocation failed.\n");
-            exit(EXIT_FAILURE);
+        printf("Error: Memory allocation failed.\n");
+        fclose(file); 
+        exit(EXIT_FAILURE);
         }
 
         for (int i = 0; i < counter; i++) {

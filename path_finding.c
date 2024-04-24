@@ -94,10 +94,21 @@ void dijkstra(int rows, int cols, int start_row, int start_col, int16_t chunk_ro
     int loaded_chunk_number = 1;
     char** current_chunk = read_maze("../chunks/1.txt", chunk_row_counter, cols);
 
+    if (current_chunk == NULL) {
+        printf("Error. Unable to read maze.\n");
+        return;
+    }
+
     char found = 0;
     int* unvisited = NULL;
     int unvisited_size = 0;
     unvisited = add_node_and_distance(unvisited, &unvisited_size, start_row * cols + start_col, 0);
+
+    if (unvisited == NULL) {
+        printf("Error. Unable to allocate memory.\n");
+        free(current_chunk); // Zwolnienie pamiêci w przypadku b³êdu
+        return;
+    }
 
     while (unvisited_size > 0 && found == 0) {
         // Find the node with the minimum distance

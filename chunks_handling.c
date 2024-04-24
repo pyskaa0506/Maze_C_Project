@@ -11,7 +11,7 @@ void free_txt_chunk(char **buffer, int16_t chunk_row_counter) {
     free(buffer);
 }
 
-char **read_txt_chunk(char *filepath, int16_t col, int16_t chunk_row_counter) {
+char **read_txt_chunk(char *filepath, size_t col, size_t chunk_row_counter) {
     FILE *file = fopen(filepath, "r");
     if (!file) {
         fprintf(stderr, "Error: Couldn't open the file\n");
@@ -19,17 +19,24 @@ char **read_txt_chunk(char *filepath, int16_t col, int16_t chunk_row_counter) {
     }
 
     char **buffer = (char **)malloc(sizeof(char *) * chunk_row_counter);
-    if (buffer == NULL){
+    if (buffer == NULL)
+    {
         fprintf(stderr,"Error: Couldn't allocate memory\n");
-        exit(1);
+        fclose(file);
+        return NULL;
     }
+
 
     for (int i = 0; i < chunk_row_counter; i++) {
         buffer[i] = (char *)malloc(sizeof(char) * (col * 2 + 3));
         if (buffer[i] == NULL){
             fprintf(stderr,"Error: Couldn't allocate memory\n");
             fclose(file);
-            free_txt_chunk(buffer, i);
+            // Zwolnienie pamiêci zaalokowanej wczeœniej
+            for (int j = 0; j < i; j++) {
+                free(buffer[j]);
+            }
+            free(buffer);
             return NULL;
         }
         fgets(buffer[i], col * 2 + 3, file);
@@ -39,7 +46,7 @@ char **read_txt_chunk(char *filepath, int16_t col, int16_t chunk_row_counter) {
     return buffer;
 }
 
-int txt_file_to_txt_chunks(const char *filepath, int16_t col, int16_t row, int16_t chunk_rows_counter) {
+int txt_file_to_txt_chunks(const char *filepath, size_t col, size_t row, size_t chunk_rows_counter) {
     int cols_in_file = col * 2 + 3;
     delete_files_in_directory("../chunks");
     FILE *file = fopen(filepath, "r");
