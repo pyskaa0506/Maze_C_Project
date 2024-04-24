@@ -77,17 +77,26 @@ int read_bin_file(char *filepath, int chunk_row_counter) {
     unsigned int how_many_already_written = 0;
     unsigned int how_many_rows_written = 1;
 
-    for (int i = 0; i < counter; i++) {
-        unsigned char *buffer = (char *) malloc(sizeof(char) * 3);
-        fread(buffer, sizeof(char), 3, file);
-        if (buffer[0] == separator && (buffer[1] == wall || buffer[1] == path)) {
-            write_code_world_to_file(file_output, buffer[1], buffer[2], col, &how_many_already_written, P_X, P_Y, K_X, K_Y, &how_many_rows_written);
-        } else {
-            printf("Incorrect format.\n");
-            exit(1);
+    unsigned char *buffer = (unsigned char *)malloc(sizeof(unsigned char) * 3);
+        if (buffer == NULL) {
+            printf("Error: Memory allocation failed.\n");
+            exit(EXIT_FAILURE);
         }
-    }
+
+        for (int i = 0; i < counter; i++) {
+            fread(buffer, sizeof(unsigned char), 3, file);
+            if (buffer[0] == separator && (buffer[1] == wall || buffer[1] == path)) {
+            write_code_world_to_file(file_output, buffer[1], buffer[2], col, &how_many_already_written, P_X, P_Y, K_X, K_Y, &how_many_rows_written);
+         } 
+        else {
+        printf("Incorrect format.\n");
+        exit(EXIT_FAILURE);
+        }
+        }
+
+    free(buffer); // Zwolnienie bufora po zako?czeniu p?tli
+
     fclose(file);
     fclose(file_output);
-    return txt_file_to_txt_chunks("../default_maps/bin_output.txt", (int16_t)((col - 1) / 2), (int16_t)((row - 1) / 2), (int16_t) chunk_row_counter);
+    return txt_file_to_txt_chunks("../default_maps/bin_output.txt", (int16_t)((col - 1) / 2), (int16_t)((row - 1) / 2), chunk_row_counter);
 }

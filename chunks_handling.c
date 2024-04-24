@@ -4,6 +4,12 @@
 #include <string.h>
 #include <ctype.h>
 
+void free_txt_chunk(char **buffer, int16_t chunk_row_counter) {
+    for (int i = 0; i < chunk_row_counter; i++) {
+        free(buffer[i]);
+    }
+    free(buffer);
+}
 
 char **read_txt_chunk(char *filepath, int16_t col, int16_t chunk_row_counter) {
     FILE *file = fopen(filepath, "r");
@@ -22,7 +28,9 @@ char **read_txt_chunk(char *filepath, int16_t col, int16_t chunk_row_counter) {
         buffer[i] = (char *)malloc(sizeof(char) * (col * 2 + 3));
         if (buffer[i] == NULL){
             fprintf(stderr,"Error: Couldn't allocate memory\n");
-            exit(1);
+            fclose(file);
+            free_txt_chunk(buffer, i);
+            return NULL;
         }
         fgets(buffer[i], col * 2 + 3, file);
     }
@@ -69,7 +77,7 @@ int txt_file_to_txt_chunks(const char *filepath, int16_t col, int16_t row, int16
 
 
         while (linesRead < chunk_rows_counter) {
-            for (int i = 0; i < col; i++) fprintf(new_file, "X");
+            for (int i = 0; i < col * 2 + 1; i++) fprintf(new_file, "X");
             fprintf(new_file, "\n");
             linesRead++;
         }
@@ -99,10 +107,9 @@ void delete_files_in_directory(const char *directory_path) {
 
             if (remove(file_path) != 0) {
                 fprintf(stderr, "Error: deleting file failed: %s\n", file_path);
+            } else {
+                printf("Deleted file: %s\n", file_path);
             }
-//            else {
-//                printf("Deleted file: %s\n", file_path);
-//            }
         }
     }
     closedir(dir);
