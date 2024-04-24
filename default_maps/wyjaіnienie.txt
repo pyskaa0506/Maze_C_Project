@@ -1,0 +1,5 @@
+Wyjaśnienie.
+Nazwa pliku składa się z liczby kolumn, liczby wierszy i procentu usunięcia ścian (0 lub 20).
+Przykład:
+"20x80_0.txt" - 20 kolumn, 80 wierszy i 0%.
+'50x35_20.txt' - 50 kolumn 35 wierszy i 20%.
