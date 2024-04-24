@@ -43,7 +43,6 @@ void process_input(int argc, char *argv[], char **input_filename, char **output_
         fprintf(stderr, "Error. Unable to open input file - %s\n", *input_filename);
         exit(2); // blad 2. Brak mozliwosci wczytania pliku
     }
-
     if(is_binary_file_v2(*input_filename)){
         if(!is_valid_binary_maze_format_v2(*input_filename)){
             fprintf(stderr, "Error. Invalid maze format - %s\n", *input_filename);
@@ -88,8 +87,6 @@ bool is_valid_input_file( const char *filename){
 }
 
 //funkcja do testowania poprawnosci formatu labiryntu
-#define MAX_LINE_LENGTH 10000
-
 bool is_valid_maze_format_v2(const char *filename){
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -133,7 +130,7 @@ bool is_valid_maze_format_v2(const char *filename){
     
         // czy linija zawiera prawidlowe znaki
         for (size_t i = 0; i < line_length; i++) {
-            if ((line_num == 1 ||line_num == expected_line_length || i == 0|| i == line_length - 1) && line[i] != 'X' && line[i] != 'P' && line[i] != 'K') {
+            if ((line_num == 1 || i == 0|| i == line_length - 1) && line[i] != 'X' && line[i] != 'P' && line[i] != 'K') {
                 fprintf(stderr, "Error. Border of maze must be composed of 'X' characters.\n");
                 fclose(file);
                 return false;
@@ -150,7 +147,6 @@ bool is_valid_maze_format_v2(const char *filename){
             }
         }
     }
-
     fclose(file);
 
     // czy istnieje tylko jedno wejscie i wyjscie
@@ -185,7 +181,7 @@ bool is_binary_file_v2(const char *filename){
     return binary;
 }
 
-// funkcja do sprawdzenia poprawnosci formatu labiryntu dla pliku binarnego 
+// funkcja do sprawdzenia poprawnosci formatu labiryntu dla pliku binarnego
 bool is_valid_binary_maze_format_v2(const char *filename){
     FILE *file = fopen(filename, "rb");
     if (!file) {
@@ -195,9 +191,9 @@ bool is_valid_binary_maze_format_v2(const char *filename){
 
     char line[MAX_LINE_LENGTH];
     size_t expected_line_length = 0;
-    size_t line_num = 0;
+    size_t line_num = 1;
 
-    while(fread(line, 1, MAX_LINE_LENGTH, file) > 0){ 
+    while(fread(line, 2, MAX_LINE_LENGTH, file) > 0){ 
         line_num++;
 
         // sprawdzenie d?ugosci linii
@@ -209,7 +205,7 @@ bool is_valid_binary_maze_format_v2(const char *filename){
         }
     
         // pierwsza linia = ustalenie oczekiwanej dlugosci
-        if (line_num == 1) {
+        if (line_num == 2) {
             expected_line_length = line_length;
         } else {
             if (line_length != expected_line_length) {

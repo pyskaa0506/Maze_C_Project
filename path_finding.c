@@ -1,311 +1,159 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "path_finding.h"
-#include "chunks_handling.h"
+#include "move_chunk.h"
 
-#define MAX_QUEUE_SIZE 10000
+// Function to add a node and its distance to the unvisited list
+int* add_node_and_distance(int* list, int* size, int node_index, int distance) {
+    int* temp = realloc(list, (*size + 2) * sizeof(int));
+    if (temp == NULL) {
+        printf("Error reallocating memory.\n");
+        free(list);
+        return NULL;
+    }
+    list = temp;
+    list[*size] = node_index;
+    list[*size + 1] = distance;
+    (*size) += 2;
+    return list;
+}
 
-typedef struct {
-    int16_t x;
-    int16_t y;
-}Point;
-
-typedef struct {
-    Point point;
-    int distance;
-}QueueNode;
-
-typedef struct {
-    QueueNode *array;
-    int front;
-    int rear;
-    int capacity;
-} Queue;
-
-typedef struct {
-    int16_t x;
-    int16_t y;
-    int chunk_index;
-} PlayerPosition;
-
-
-Queue *createQueue(int capacity) 
+void backtrack_path(char*** current_chunk, int rows, int cols, int current_row, int current_col, int* loaded_chunk_number, int chunk_row_counter, int how_many_chunks)
 {
-    Queue *queue = (Queue *)malloc(sizeof(Queue));
-    queue -> capacity = capacity;
-    queue -> front = queue -> rear = -1;
-    queue -> array = (QueueNode *)malloc(queue -> capacity * sizeof(QueueNode));
-    return queue;
-}
+    int number_of_steps = 0;
+    FILE* file = fopen("../tmp/steps.txt", "w");
 
-bool isEmpty(Queue *queue) 
-{
-    return queue -> front == -1;
-}
+    while (find_and_return_char_from_chunk(loaded_chunk_number, chunk_row_counter, cols, current_col, current_row, current_chunk, how_many_chunks) != START) {
+        number_of_steps+=1;
+        char step = find_and_return_char_from_chunk(loaded_chunk_number, chunk_row_counter, cols, current_col, current_row, current_chunk, how_many_chunks);
+        if (!file) {
+            printf("Error opening file.\n");
+            return;
+        }
+        fprintf(file, "%c", step);
 
-// dodaje element do kolejki 
-void enqueue(Queue *queue, QueueNode item) 
-{
-    if ((queue -> rear + 1) % queue -> capacity == queue -> front)
-        return;
+        if (step == LEFT)
+        {
+            current_col -= 1;
+        }
+        else if (step == RIGHT)
+        {
+            current_col += 1;
+        }
+        else if (step == UP)
+        {
+            current_row -= 1;
+        }
+        else if (step == DOWN)
+        {
+            current_row += 1;
+        }
 
-    queue -> rear = (queue -> rear + 1) % queue -> capacity;
-    queue -> array[queue -> rear] = item;
+        char new_char = find_and_return_char_from_chunk(loaded_chunk_number, chunk_row_counter, cols, current_col, current_row, current_chunk, how_many_chunks);
 
-    if (queue -> front == -1){
-        queue -> front = queue -> rear;
-    }
-}
-
-//usuwa i zwraca pierwszy element z kolejki 
-QueueNode dequeue(Queue *queue) {
-    if (isEmpty(queue))
-        return (QueueNode){0,0,0};
-    QueueNode item = queue -> array[queue -> front];
-    if (queue -> front == queue -> rear){
-        queue -> front = queue -> rear = -1;
-    }
-    else{
-        queue -> front = (queue -> front + 1) % queue -> capacity;
-    }
-
-    return item;
-
-}
-
-
-//czy znajduje sie w labiryncie dany punkt
-bool isValid(Point point, int16_t col, int16_t row) {
-    return (point.x >= 0 && point.x < col && point.y >= 0 && point.y < row);
-}
-
-
-bool is_valid_cell(const char *input_filename, int x, int y) 
-{
-    FILE *file = fopen(input_filename, "r");
-    if (file == NULL) 
-    {
-        fprintf(stderr, "Error. Unable to open input file %s\n", input_filename);
-        exit(EXIT_FAILURE);
-    }
-
-    char line[1024];
-    int row_counter = 0;
-
-    // przesuwa wskaznik pliku na odpowiednia linie
-    while (fgets(line, sizeof(line), file) && row_counter < y) 
-    {
-        row_counter++;
-
-    }
-
-    if (line[x] == 'X' || line[x] == 'P' || line[x] == 'K' || line[x] == ' ') 
-    {
-        fclose(file);
-        return true;
-    } 
-    else 
-    {
-        fclose(file);
-        return false;
-    }
-}
-
-
-bool is_valid_position(PlayerPosition position, int16_t col, int16_t row) {
-    return (position.x >= 0 && position.x < col && position.y >= 0 && position.y < row);
-}
-
-bool is_within_current_chunk(PlayerPosition position, int16_t chunk_col, int16_t chunk_row) {
-    return (position.x >= 0 && position.x < chunk_col && position.y >= 0 && position.y < chunk_row);
-}
-
-void move_to_next_chunk(PlayerPosition *position, int chunk_col) {
-    position->chunk_index++;
-    position->x = 0;
-}
-
-/*
-// funkcja algorytmu Dijkstra 
-char *find_path_in_current_chunk(const char *input_filename, int16_t col, int16_t row) 
-{
-    int16_t chunk_rows_counter = 50; // jaki musi by? rozmiar chunku?
-
-    int chunk_counter = txt_file_to_txt_chunks(input_filename,col, row, chunk_rows_counter);
-
-    // Tworzenie kolejki do bfsa
-    Queue *queue =createQueue(MAX_QUEUE_SIZE);
-
-    enqueue(queue, (QueueNode){{0, 0}, 0});
-
-    // odwiedzone 
-    bool **visited = (bool **)malloc(row * sizeof(bool *));
-    for (int i = 0; i < row; i++) 
-    {
-        visited[i] = (bool *)calloc(col, sizeof(bool));
-    }
-
-    // BFS
-    Point exit_point = {-1, -1};
-
-    while (!isEmpty(queue)) {
-        QueueNode current = dequeue(queue);
-        Point current_point = current.point;
-        int distance = current.distance;
-
-        // czy jest wyj?ciem
-        if (current_point.x == col - 1 && current_point.y == row - 1) {
-            exit_point = current_point;
+        if (current_row < 0 || current_row >= rows || current_col < 0 || current_col >= cols) {
+            printf("Error: Path goes out of bounds.\n");
             break;
         }
+        else if (new_char == WALL) {
+            printf("Error: Path goes through a wall.\n");
+            break;
+        }
+        else if (new_char == PATH) {
+            printf("Error: Path goes through itself.\n");
+            break;
+        }
+        else if (new_char == START) {
+            printf("(%d, %d)\n", current_row, current_col);
+            break;
+        }
+    }
 
-        Point directions[] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // left, tight, up and down
-        for (int i = 0; i < 4; i++) {
-            Point adjacent = {current_point.x + directions[i].x, current_point.y + directions[i].y};
+    if (!file) {
+        printf("Error opening file.\n");
+        return;
+    }
 
-            if (isValid(adjacent, col, row) && !visited[adjacent.y][adjacent.x] && is_valid_cell(input_filename, adjacent.x, adjacent.y)) 
-            {
-                enqueue(queue, (QueueNode){adjacent, distance + 1});
-                visited[adjacent.y][adjacent.x] = true;
+    FILE* count_file = fopen("../tmp/steps_count.txt", "w");
+    if (!count_file) {
+        printf("Error opening file.\n");
+        return;
+    }
+    fprintf(count_file, "%d", number_of_steps);
+
+    fclose(file);
+    fclose(count_file);
+}
+
+
+
+
+// Implementation of Dijkstra's Algorithm
+void dijkstra(int rows, int cols, int start_row, int start_col, int16_t chunk_row_counter, int how_many_chunks)
+{
+    int loaded_chunk_number = 1;
+    char** current_chunk = read_maze("../chunks/1.txt", chunk_row_counter, cols);
+
+    char found = 0;
+    int* unvisited = NULL;
+    int unvisited_size = 0;
+    unvisited = add_node_and_distance(unvisited, &unvisited_size, start_row * cols + start_col, 0);
+
+    while (unvisited_size > 0 && found == 0) {
+        // Find the node with the minimum distance
+        int min_index = 1;
+        for (int i = 3; i < unvisited_size; i += 2) {
+            if (unvisited[i] < unvisited[min_index]) {
+                min_index = i;
             }
         }
-    }
 
+        int current = unvisited[min_index - 1];
+        int current_distance = unvisited[min_index];
+        // Remove the current node from the unvisited list
+        unvisited[min_index - 1] = unvisited[unvisited_size - 2];
+        unvisited[min_index] = unvisited[unvisited_size - 1];
+        unvisited_size -= 2;
 
-    for (int i = 0; i < row; i++) {
-        free(visited[i]);
-    }
-    free(visited);
-    free(queue-> array);
-    free(queue);
+        int current_row = current / cols;
+        int current_col = current % cols;
 
-    char *path = NULL;
-    if (exit_point.x != -1 && exit_point.y != -1) 
-    {
-        path = (char *)malloc(MAX_QUEUE_SIZE * sizeof(char));
-        if (path == NULL) 
-        {
-            fprintf(stderr, "Error. Memory allocation failed for path\n");
-            exit(EXIT_FAILURE);
+        // current_row and current_col == TARGET
+        if (find_and_return_char_from_chunk(&loaded_chunk_number, chunk_row_counter, cols, current_col, current_row, &current_chunk, how_many_chunks)
+                    == TARGET) {
+            break;  // Stop the algorithm if the target is reached
         }
 
-        Point current_point = exit_point;
-        int path_length = 0;
-        while (!(current_point.x == 0 && current_point.y == 0)) {
-            Point directions[] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; 
-            for (int i = 0; i < 4; i++) {
-                Point adjacent = {current_point.x + directions[i].x, current_point.y + directions[i].y};
-                if (isValid(adjacent, col, row) && visited[adjacent.y][adjacent.x] && visited[adjacent.y][adjacent.x] == visited[current_point.y][current_point.x] - 1) 
-                {
-                    if (directions[i].x == 1)
-                        path[path_length++] = 'R';
-                    else if (directions[i].x == -1)
-                        path[path_length++] = 'L';
-                    else if (directions[i].y == 1)
-                        path[path_length++] = 'D';
-                    else if (directions[i].y == -1)
-                        path[path_length++] = 'U';
-                    current_point = adjacent;
+        // Check and update four possible directions
+        int direction_offsets[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        char direction_marks[4] = {DOWN, UP, RIGHT, LEFT};
+
+        for (int i = 0; i < 4; i++) {
+            int neighbor_row = current_row + direction_offsets[i][0];
+            int neighbor_col = current_col + direction_offsets[i][1];
+            char neighbor_char = find_and_return_char_from_chunk(&loaded_chunk_number, chunk_row_counter, cols, neighbor_col, neighbor_row, &current_chunk, how_many_chunks);
+            if (neighbor_row >= 0 && neighbor_row < rows && neighbor_col >= 0 && neighbor_col < cols && (neighbor_char == FREE_SPACE || neighbor_char == TARGET))
+            {
+                if (neighbor_char == TARGET) {
+                    found = 1;
+                    backtrack_path(&current_chunk, rows, cols, current_row, current_col, &loaded_chunk_number, chunk_row_counter, how_many_chunks);
                     break;
+                }
+                else
+                {
+                    // mark the direction you came from into the neighbor cell
+                    find_and_save_char_into_chunk(direction_marks[i], &loaded_chunk_number, chunk_row_counter, cols,
+                                                  neighbor_col, neighbor_row, &current_chunk, how_many_chunks);
+                    unvisited = add_node_and_distance(unvisited, &unvisited_size, neighbor_row * cols + neighbor_col,
+                                                      current_distance + 1);
                 }
             }
         }
-
-        // odwrocenie sciezki (odpowiednia kolejnosc)
-        for (int i = 0; i < path_length / 2; i++) {
-            char temp = path[i];
-            path[i] = path[path_length - i - 1];
-            path[path_length - i - 1] = temp;
-        }
-        path[path_length] = '\0';
     }
-
-    return path;
-}
-*/
-
-char *find_path_with_chunk_movement(const char *input_filename, int16_t col, int16_t row) {
-    int16_t chunk_rows_counter = 50;
-    PlayerPosition player = {0, 0, 0};
-
-    int chunk_counter = txt_file_to_txt_chunks(input_filename, col, row, chunk_rows_counter);
-    Queue *queue = createQueue(MAX_QUEUE_SIZE);
-    enqueue(queue, (QueueNode){{player.x, player.y}, 0});
-    bool **visited = (bool **)malloc(row * sizeof(bool *));
-    for (int i = 0; i < row; i++) {
-        visited[i] = (bool *)calloc(col, sizeof(bool));
+    free(unvisited);
+    for (int i = 0; i < chunk_row_counter; i++) {
+        free(current_chunk[i]);
     }
-    Point exit_point = {-1, -1};
-    while (!isEmpty(queue)) {
-        QueueNode current = dequeue(queue);
-        Point current_point = current.point;
-        int distance = current.distance;
-        if (!is_within_current_chunk(player, col, chunk_rows_counter)) {
-            move_to_next_chunk(&player, col);
-            memset(visited, 0, row * sizeof(bool *));
-            continue;
-        }
-        if (current_point.x == col - 1 && current_point.y == row - 1 && player.chunk_index == chunk_counter - 1) {
-            exit_point = current_point;
-            break;
-        }
-        if (current_point.x == col - 1 && current_point.y == chunk_rows_counter - 1 && player.chunk_index < chunk_counter - 1) {
-            move_to_next_chunk(&player, col);
-            memset(visited, 0, row * sizeof(bool *));
-            continue;
-        }
-        Point directions[] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-        for (int i = 0; i < 4; i++) {
-            Point adjacent = {current_point.x + directions[i].x, current_point.y + directions[i].y};
-            if (isValid(adjacent, col, row) && !visited[adjacent.y][adjacent.x] && is_valid_cell(input_filename, adjacent.x, adjacent.y)) {
-                enqueue(queue, (QueueNode){adjacent, distance + 1});
-                visited[adjacent.y][adjacent.x] = true;
-            }
-        }
-    }
-    for (int i = 0; i < row; i++) {
-        free(visited[i]);
-    }
-    free(visited);
-    free(queue->array);
-    free(queue);
-    char *path = NULL;
-    if (exit_point.x != -1 && exit_point.y != -1) {
-        // Implementacja ?cie?ki
-    }
-    return path;
+    free(current_chunk);
 }
 
-
-PathInfo find_path(const char *input_filename, int16_t col, int16_t row) {
-    char *path = find_path_with_chunk_movement(input_filename, col, row);
-
-    // zworecenie kirunki i sciezki
-    PathInfo path_info;
-    path_info.path = path;
-    path_info.direction = ' '; // niepotrzebne, dlt ze kierunek jest zawarty w sciezce
-    return path_info;
-}
-
-// okre?lenia kierunku na podstawie ostatniego ruchu w sciezce
-char determine_next_direction(const char *path) {
-    int length = strlen(path);
-    if (length > 0) {
-        return path[length - 1]; // kierunek jest zapisany na ko?cu ?cie?ki
-    } else {
-        return ' '; // domyslnie zwraca spacje (gdy brak przejscia)
-    }
-}
-
-void save_path_to_file(const char *path) {
-    FILE *file = fopen("temp_path.txt", "w");
-    if (file == NULL) {
-        fprintf(stderr, "Error: Unable to open file for writing.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    fprintf(file, "%s\n", path);
-
-    fclose(file);
-}

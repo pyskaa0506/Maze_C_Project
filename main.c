@@ -1,14 +1,22 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "file_loading.h"
 #include "chunks_handling.h"
+#include "bin_chunks_handling.h"
 #include "path_finding.h"
+#include "file_saving.h"
 
 int main(int argc, char *argv[]) {
     // deklaracja zmiennych na nazwy plików
     char *input_filename = NULL;
     char *output_filename = NULL;
+    char *filepath = NULL;
+    int16_t chunk_rows_counter = 50; // How many rows should be packed into a chunk (file)
+    int16_t rows, cols; // Zmiana na int16_t
+    int how_many_chunks = 0; // will probably be used in the future
+
+
+//    input_filename = "../default_maps/maze.bin";
 
     // getopt()
     process_input(argc, argv, &input_filename, &output_filename);
@@ -23,61 +31,92 @@ int main(int argc, char *argv[]) {
         printf("Input file does not exist.\n");
     }
 
+    bool is_binary = is_binary_file_v2(input_filename);
     // sprawdzenie, czy plik jest binarny czy tekstowy
-    if (is_binary_file_v2
-(input_filename)) {
+    if (is_binary) {
         printf("File is binary.\n");
         if (is_valid_binary_maze_format_v2(input_filename)) {
             printf("Binary maze format is valid.\n");
+            how_many_chunks = read_bin_file(input_filename, chunk_rows_counter);
+            filepath = "../default_maps/bin_output.txt";
+            if (get_maze_dimensions(filepath, &cols, &rows)) {
+                printf("Maze dimensions: %dx%d\n", cols, rows);
+            } else {
+                fprintf(stderr, "Failed to get maze dimensions from file '%s'.\n", input_filename);
+                return EXIT_FAILURE;
+
+            }
         } else {
             printf("Binary maze format is invalid.\n");
+            exit(EXIT_FAILURE);
         }
     } else {
         printf("File is text.\n");
         if (is_valid_maze_format_v2(input_filename)) {
             printf("The maze format is valid.\n");
+            filepath = input_filename;
+            if (get_maze_dimensions(filepath, &cols, &rows)) {
+                printf("Maze dimensions: %dx%d\n", cols, rows);
+            } else {
+                fprintf(stderr, "Failed to get maze dimensions from file '%s'.\n", input_filename);
+                return EXIT_FAILURE;
+            }
+            how_many_chunks = txt_file_to_txt_chunks(filepath, cols, rows,
+                                                     chunk_rows_counter); //this separates the file into chunks and returns the number of chunks created
         } else {
             printf("The maze format is invalid.\n");
+            exit(EXIT_FAILURE);
         }
     }
 
-    // zwolnienie pami?ci zaalokowanej na nazwy plików
-    //free(input_filename);
-    free(output_filename);
-    
-        char *filepath = "../default_maps/25x50_20.txt";
-    int16_t col = 25;
-    int16_t row = 50; //remember it is 2 * row + 1 in file
-    int16_t chunk_rows_counter = 50; // How many rows should be packed into a chunk (file)
-    int chunk_counter = txt_file_to_txt_chunks(filepath, col, row, chunk_rows_counter); //this separates the file into chunks and returns the number of chunks created
+    printf("Loading file... This may take a while.\n");
+    dijkstra(rows, cols, 1, 0, chunk_rows_counter, how_many_chunks);  // Assuming starting point at (1,0) !!!
 
+    int num_letters;
+    FILE *input_file = fopen("../tmp/steps_count.txt", "r");
+    if (input_file == NULL) {
+        perror("Error");
+        exit(EXIT_FAILURE);
+    }
+    fscanf(input_file, "%d", &num_letters);
+    fclose(input_file);
 
-    //tutorial
-    char *filepath_chunk = "../chunks/3.txt";
-    char **chunk = read_txt_chunk(filepath_chunk, col, row, chunk_rows_counter); //this reads the first chunk and returns it as a 2D array that you can work on
+    reverse_file("../tmp/steps.txt", "../tmp/reversed.txt", num_letters);
+    change_directions("../tmp/reversed.txt", "../tmp/reversed_directions.txt", num_letters);
+    add_char_to_end("../tmp/reversed_directions.txt", 'R');
 
-    // and if you want to print every chunk char by char
-    for (int i = 1; i <= chunk_counter; i++) {
-        char filename[10];
-        sprintf(filename, "../chunks/%d.txt", i);
-        char **chunk = read_txt_chunk(filename, col, row, chunk_rows_counter);
-        for (int j = 0; j < chunk_rows_counter; j++) {
-            for (int k = 0; k < col * 2 + 1; k++) {
-                printf("%c", chunk[j][k]);
+    if (is_binary) {
+        int code_words = bin_compress("../tmp/reversed_directions.txt", num_letters, "../tmp/final_output.txt");
+        if (output_filename == NULL){
+            printf("You didn't specify the output filename. Do you want to modify original file? y/n \n");
+            char answer;
+            scanf("%c", &answer);
+            if (answer == 'y' || answer == 'Y'){
+                modify_bin_file(input_filename, code_words , "../tmp/final_output.txt");
+            } else if (answer == 'n' || answer == 'N'){
+                printf("Saving to output.bin...\n");
+                copy_file(input_filename, "output.bin", "../results/");
+                modify_bin_file("../results/output.bin", code_words , "../tmp/final_output.txt");
+            } else {
+                printf("Invalid answer.\n");
             }
-            printf("\n");
+        } else{
+            copy_file(input_filename, output_filename, "../results/");
+            modify_bin_file(output_filename, code_words , "../tmp/final_output.txt");
+        }
+
+    } else {
+        txt_compress("../tmp/reversed_directions.txt", num_letters, "../tmp/final_output.txt");
+        if (output_filename == NULL) {
+            print_file_to_console("../tmp/final_output.txt");
+        } else {
+            copy_file("../tmp/final_output.txt", output_filename, "../results/");
         }
     }
 
-    /*
-    PathInfo path_info = find_path(input_filename, col, row);
-    printf("Found path: %s\n", path_info.path);
-
-    save_path_to_file(path_info.path);
-    printf("Path saved to temp_path.txt\n");
-
-    free(path_info.path);
-    */
-
+//    delete_files_in_directory("../tmp");
+    // zwolnienie pamiêci
+//    free(input_filename);
+//    free(output_filename);
     return EXIT_SUCCESS;
 }
