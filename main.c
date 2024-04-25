@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     int how_many_chunks = 0; // will probably be used in the future
 
 
-    //input_filename = "../default_maps/maze.bin";
+//    input_filename = "../default_maps/maze.bin";
 
     // getopt()
     process_input(argc, argv, &input_filename, &output_filename);
@@ -36,7 +36,6 @@ int main(int argc, char *argv[]) {
     if (is_binary) {
         printf("File is binary.\n");
         if (is_valid_binary_maze_format_v2(input_filename)) {
-            printf("Binary maze format is valid.\n");
             how_many_chunks = read_bin_file(input_filename, chunk_rows_counter);
             filepath = "../default_maps/bin_output.txt";
             if (get_maze_dimensions(filepath, &cols, &rows)) {
@@ -114,9 +113,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-//    delete_files_in_directory("../tmp");
-    // zwolnienie pamiêci
-//    free(input_filename);
-//    free(output_filename);
+    delete_files_in_directory("../tmp");
     return EXIT_SUCCESS;
 }

@@ -90,7 +90,7 @@ int read_bin_file(char *filepath, int chunk_row_counter) {
             write_code_world_to_file(file_output, buffer[1], buffer[2], col, &how_many_already_written, P_X, P_Y, K_X, K_Y, &how_many_rows_written);
          } 
         else {
-        printf("Incorrect format.\n");
+        printf("Error: Input file is incorrect. Terminating program.\n");
         exit(EXIT_FAILURE);
         }
         }

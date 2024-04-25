@@ -268,34 +268,41 @@ void modify_bin_file(char *input_bin_file, int code_words, char *output_file){
     printf("Solution offset: %d\n", solution_offset);
 
     // Calculate new_solution_offset
-    int32_t new_solution_offset = counter * 3 + 29;
+    int32_t new_solution_offset = counter * 3 + 33;
     printf("New solution offset: %d\n", new_solution_offset);
 
     // Write new_solution_offset to the file
     fseek(file, 29 + sizeof(int32_t), SEEK_SET);
     fwrite(&new_solution_offset, sizeof(int32_t), 1, file);
-
     fseek(file, 29 + sizeof(int32_t), SEEK_SET);
     fread(&solution_offset, sizeof(int32_t), 1, file);
-    printf("Solution offset: %d\n", solution_offset);
+//    printf("Solution offset: %d\n", solution_offset);
 
     // Move the file pointer to the new solution_offset position
     fseek(file, new_solution_offset, SEEK_SET);
 
     //write solution id at start of offset 0x52524243
-    int32_t solution_id = 0x52524243;
-    fwrite(&solution_id, sizeof(int32_t), 1, file);
+    unsigned int solution_id = 0x52524243;
+    fwrite(&solution_id, sizeof(unsigned int), 1, file);
+    fseek(file, new_solution_offset, SEEK_SET);
+    fread(&solution_id, sizeof(unsigned int), 1, file);
+//    printf("Solution id: %d\n", solution_id);
+
     //write number of code words
+    fseek(file, 0, SEEK_END);
     fwrite(&code_words, sizeof(int32_t), 1, file);
+    fseek(file, -4, SEEK_CUR);
+    fread(&code_words, sizeof(int32_t), 1, file);
+//    printf("Code words: %d\n", code_words);
 
-
+    fseek(file, 0, SEEK_END);
     FILE *output_fp = fopen(output_file, "r");
     if (output_fp == NULL) {
         perror("Error");
         exit(EXIT_FAILURE);
     }
-    char ch;
-    int num;
+    unsigned char ch;
+    unsigned int num;
     while (fscanf(output_fp, "%c%d", &ch, &num) == 2) {
         // Write the character to the output file
         fwrite(&ch, sizeof(char), 1, file);
