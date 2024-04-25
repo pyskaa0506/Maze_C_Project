@@ -294,13 +294,14 @@ void modify_bin_file(char *input_bin_file, int code_words, char *output_file){
         perror("Error");
         exit(EXIT_FAILURE);
     }
-    int ch;
-    int8_t value;
-    while ((ch = fgetc(output_fp)) != EOF) {
-        if (isdigit(ch)) {
-            value = (int8_t)(ch - '0');
-            fwrite(&value, sizeof(int8_t), 1, file);
-        }
+    char ch;
+    int num;
+    while (fscanf(output_fp, "%c%d", &ch, &num) == 2) {
+        // Write the character to the output file
+        fwrite(&ch, sizeof(char), 1, file);
+
+        // Write the number as binary to the output file
+        fwrite(&num, sizeof(char), 1, file);
     }
     fclose(output_fp);
     fclose(file);
