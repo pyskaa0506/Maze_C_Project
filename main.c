@@ -16,10 +16,10 @@ int main(int argc, char *argv[]) {
     int how_many_chunks = 0; // will probably be used in the future
 
 
-    input_filename = "../default_maps/maze.bin";
+    //input_filename = "../default_maps/maze.bin";
 
     // getopt()
-//    process_input(argc, argv, &input_filename, &output_filename);
+    process_input(argc, argv, &input_filename, &output_filename);
 
     printf("Input filename: %s\n", input_filename);
     printf("Output filename: %s\n", output_filename);
